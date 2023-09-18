@@ -5,6 +5,7 @@ import (
 	"its.ac.id/base-go/pkg/app"
 
 	// Services
+	_ "its.ac.id/base-go/services/config"
 	routes "its.ac.id/base-go/services/routes"
 )
 

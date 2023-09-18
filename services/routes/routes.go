@@ -5,6 +5,7 @@ import (
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
 	"its.ac.id/base-go/pkg/app"
+	"its.ac.id/base-go/services/config"
 )
 
 type Server interface {
@@ -22,6 +23,12 @@ type GinServer struct {
 }
 
 func NewGinServer(i *do.Injector) (Server, error) {
+	cfg := do.MustInvoke[config.Config](i).App()
+	if cfg.Debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 
 	return &GinServer{r}, nil
