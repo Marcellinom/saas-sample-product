@@ -9,6 +9,7 @@ import (
 type Command struct {
 	Name        string
 	Description string
+	Usage       string
 	Handler     func([]string)
 }
 
@@ -38,6 +39,10 @@ func (s *Script) GetCommand(name string) (Command, bool) {
 		}
 	}
 	return Command{}, false
+}
+
+func (s *Script) Commands() []Command {
+	return s.commands
 }
 
 var HookBoot = hooks.NewHook[*Script]("boot")

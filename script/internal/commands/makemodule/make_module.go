@@ -13,6 +13,7 @@ func init() {
 		event.Msg.AddCommand(app.Command{
 			Name:        "make:module",
 			Description: "Create new module",
+			Usage:       "make:module <module_name>",
 			Handler:     makeModule,
 		})
 	})
