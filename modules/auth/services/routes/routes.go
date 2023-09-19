@@ -17,11 +17,10 @@ func init() {
 		g := r.Group("/auth")
 
 		g.GET("/login", func(c *gin.Context) {
-			s := services.NewLoginService(c)
 			u := contracts.NewUser("123")
 			u.AddRole("admin", []string{"admin"}, true)
 
-			s.Login(u)
+			services.Login(c, u)
 			c.JSON(http.StatusOK, gin.H{
 				"message": "logged in",
 			})

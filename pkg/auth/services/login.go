@@ -17,17 +17,7 @@ const (
 	ErrBuildToken = "error_build_token"
 )
 
-type LoginService struct {
-	ctx *gin.Context
-}
-
-func NewLoginService(ctx *gin.Context) *LoginService {
-	return &LoginService{
-		ctx: ctx,
-	}
-}
-
-func (s *LoginService) Login(u *contracts.User) error {
+func Login(ctx *gin.Context, u *contracts.User) error {
 	cfg := do.MustInvoke[config.Config](do.DefaultInjector)
 	appCfg := cfg.App()
 	authCfg := cfg.Auth()
@@ -53,7 +43,7 @@ func (s *LoginService) Login(u *contracts.User) error {
 
 	httpCfg := cfg.HTTP()
 
-	s.ctx.SetCookie(
+	ctx.SetCookie(
 		utils.GetCookieName(),
 		string(signed),
 		maxAge,
