@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
-	"its.ac.id/base-go/modules/auth/internal/controllers"
+	"its.ac.id/base-go/modules/auth/internal/app/controllers"
 	"its.ac.id/base-go/pkg/auth/middleware"
 	"its.ac.id/base-go/services/web"
 )
