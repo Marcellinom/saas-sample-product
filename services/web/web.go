@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -50,6 +51,23 @@ func (g *GinServer) Start() {
 var HookBuildRouter = hooks.NewHook[*gin.Engine]("router.build")
 
 func (g *GinServer) buildRouter() *gin.Engine {
+	// Custom Handlers
+	g.engine.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"code":    http.StatusNotFound,
+			"message": "not_found",
+			"data":    nil,
+		})
+	})
+	g.engine.HandleMethodNotAllowed = true
+	g.engine.NoMethod(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
+			"code":    http.StatusMethodNotAllowed,
+			"message": "method_not_allowed",
+			"data":    nil,
+		})
+	})
+
 	// Global middleware
 	g.engine.Use(g.initiateCorsMiddleware())
 
