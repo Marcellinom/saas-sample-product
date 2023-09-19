@@ -3,11 +3,11 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
-	"its.ac.id/base-go/services/routes"
+	"its.ac.id/base-go/services/web"
 )
 
 func init() {
-	routes.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
+	web.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
 		r := event.Msg
 		g := r.Group("/berkas")
 
