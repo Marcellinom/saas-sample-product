@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
+	"github.com/samber/do"
+	"its.ac.id/base-go/modules/auth/internal/controllers"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/middleware"
 	"its.ac.id/base-go/pkg/auth/services"
@@ -15,6 +17,8 @@ func init() {
 	web.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
 		r := event.Msg
 		g := r.Group("/auth")
+		i := do.DefaultInjector
+		authController := controllers.NewAuthController(i)
 
 		g.GET("/login", func(c *gin.Context) {
 			u := contracts.NewUser("123")
@@ -25,6 +29,7 @@ func init() {
 				"message": "logged in",
 			})
 		})
+
 		g.GET("/user", middleware.Auth(), func(ctx *gin.Context) {
 			u := services.User(ctx)
 			var roles []gin.H
@@ -46,5 +51,7 @@ func init() {
 				},
 			})
 		})
+
+		g.GET("/logout", middleware.Auth(), authController.Logout)
 	})
 }
