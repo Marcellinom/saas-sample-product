@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,7 @@ func Login(ctx *gin.Context, u *contracts.User) error {
 
 	httpCfg := cfg.HTTP()
 
+	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
 		utils.GetCookieName(),
 		string(signed),

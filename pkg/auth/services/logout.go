@@ -1,6 +1,8 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
@@ -12,6 +14,7 @@ func Logout(ctx *gin.Context) error {
 	authCfg := cfg.Auth()
 	httpCfg := cfg.HTTP()
 
+	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
 		utils.GetCookieName(),
 		"",
