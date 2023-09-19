@@ -1,6 +1,7 @@
 package web
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -42,7 +43,7 @@ func NewGinServer(i *do.Injector) (Server, error) {
 }
 
 func (g *GinServer) Start() {
-	g.engine.Run()
+	g.engine.Run(":" + strconv.Itoa(g.cfg.HTTP().Port))
 }
 
 // HookBuildRouter allows modules the ability to build on the web router

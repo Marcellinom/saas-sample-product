@@ -9,6 +9,7 @@ import (
 	routes "its.ac.id/base-go/services/web"
 
 	// Modules
+	_ "its.ac.id/base-go/modules/auth"
 	_ "its.ac.id/base-go/modules/berkas"
 )
 

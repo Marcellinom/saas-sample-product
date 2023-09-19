@@ -16,6 +16,12 @@ type AppConfig struct {
 	URL   string `env:"APP_URL,default=http://localhost"`
 }
 
+type AuthConfig struct {
+	CookieDomain string `env:"AUTH_COOKIE_DOMAIN,default=localhost"`
+	CookiePath   string `env:"AUTH_COOKIE_PATH,default=/"`
+	MaxAge       int    `env:"AUTH_EXPIRATION,default=3600"`
+}
+
 type CorsConfig struct {
 	Paths          []string `env:"CORS_PATHS,default=*"`
 	AllowedMethods []string `env:"CORS_ALLOWED_METHODS,default=*"`
@@ -26,22 +32,39 @@ type CorsConfig struct {
 	SupportCred    bool     `env:"CORS_SUPPORT_CREDENTIALS,default=false"`
 }
 
+type HTTPConfig struct {
+	Port   int  `env:"HTTP_PORT,default=8080"`
+	Secure bool `env:"HTTP_SECURE,default=false"`
+}
+
 type Config interface {
 	App() AppConfig
+	Auth() AuthConfig
 	Cors() CorsConfig
+	HTTP() HTTPConfig
 }
 
 type ConfigImpl struct {
 	app  AppConfig
+	auth AuthConfig
 	cors CorsConfig
+	http HTTPConfig
 }
 
 func (c ConfigImpl) App() AppConfig {
 	return c.app
 }
 
+func (c ConfigImpl) Auth() AuthConfig {
+	return c.auth
+}
+
 func (c ConfigImpl) Cors() CorsConfig {
 	return c.cors
+}
+
+func (c ConfigImpl) HTTP() HTTPConfig {
+	return c.http
 }
 
 func NewConfig(i *do.Injector) (Config, error) {
@@ -49,15 +72,27 @@ func NewConfig(i *do.Injector) (Config, error) {
 		log.Println("Error loading .env file")
 	}
 
-	var cfg AppConfig
-	err := envdecode.StrictDecode(&cfg)
+	var app AppConfig
+	err := envdecode.StrictDecode(&app)
 	if err != nil {
 		return nil, err
 	}
+	var auth AuthConfig
+	err = envdecode.StrictDecode(&auth)
+	if err != nil {
+		return nil, err
+	}
+
 	var cors CorsConfig
 	err = envdecode.StrictDecode(&cors)
+	if err != nil {
+		return nil, err
+	}
 
-	return &ConfigImpl{cfg, cors}, err
+	var http HTTPConfig
+	err = envdecode.StrictDecode(&http)
+
+	return &ConfigImpl{app, auth, cors, http}, err
 }
 
 func init() {
