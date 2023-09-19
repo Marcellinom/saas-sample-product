@@ -9,15 +9,18 @@ import (
 	"its.ac.id/base-go/services/web"
 )
 
+func registerRoutes(r *gin.Engine) {
+	g := r.Group("/auth")
+	i := do.DefaultInjector
+	authController := controllers.NewAuthController(i)
+
+	g.GET("/login", authController.Login)
+	g.GET("/user", middleware.Auth(), authController.User)
+	g.GET("/logout", middleware.Auth(), authController.Logout)
+}
+
 func init() {
 	web.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
-		r := event.Msg
-		g := r.Group("/auth")
-		i := do.DefaultInjector
-		authController := controllers.NewAuthController(i)
-
-		g.GET("/login", authController.Login)
-		g.GET("/user", middleware.Auth(), authController.User)
-		g.GET("/logout", middleware.Auth(), authController.Logout)
+		registerRoutes(event.Msg)
 	})
 }
