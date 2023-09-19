@@ -61,8 +61,18 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	u := contracts.NewUser("123")
 	u.AddRole("admin", []string{"admin"}, true)
 
-	services.Login(ctx, u)
+	err := services.Login(ctx, u)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "login_failed",
+			"data":    nil,
+		})
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
 		"message": "logged in",
+		"data":    nil,
 	})
 }
