@@ -9,6 +9,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/samber/do"
 	"its.ac.id/base-go/pkg/auth/contracts"
+	"its.ac.id/base-go/pkg/auth/internal/utils"
 	"its.ac.id/base-go/services/config"
 )
 
@@ -53,7 +54,7 @@ func (s *LoginService) Login(u *contracts.User) error {
 	httpCfg := cfg.HTTP()
 
 	s.ctx.SetCookie(
-		getCookieName(),
+		utils.GetCookieName(),
 		string(signed),
 		maxAge,
 		authCfg.CookiePath,

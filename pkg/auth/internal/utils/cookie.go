@@ -1,4 +1,4 @@
-package services
+package utils
 
 import (
 	"strings"
@@ -8,7 +8,7 @@ import (
 	"its.ac.id/base-go/services/config"
 )
 
-func getCookieName() string {
+func GetCookieName() string {
 	cfg := do.MustInvoke[config.Config](do.DefaultInjector)
 	appCfg := cfg.App()
 	name := appCfg.Name
