@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 )
 
@@ -31,5 +32,37 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		"code":    http.StatusOK,
 		"message": "logout_success",
 		"data":    nil,
+	})
+}
+
+func (c *AuthController) User(ctx *gin.Context) {
+	u := services.User(ctx)
+	var roles []gin.H
+	for _, r := range u.Roles() {
+		roles = append(roles, gin.H{
+			"name":        r.Name,
+			"permissions": r.Permissions,
+			"is_default":  r.IsDefault,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "user",
+		"data": gin.H{
+			"id":          u.Id(),
+			"active_role": u.ActiveRole(),
+			"roles":       roles,
+		},
+	})
+}
+
+func (c *AuthController) Login(ctx *gin.Context) {
+	u := contracts.NewUser("123")
+	u.AddRole("admin", []string{"admin"}, true)
+
+	services.Login(ctx, u)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "logged in",
 	})
 }
