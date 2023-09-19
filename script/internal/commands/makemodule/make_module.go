@@ -31,8 +31,22 @@ func makeModule(args []string) {
 		return
 	}
 
+	var ans string
+	for {
+		fmt.Print("Do you want to use transaction script instead of aggregate pattern? (y/N): ")
+		fmt.Scanln(&ans)
+		if ans == "y" || ans == "N" || ans == "" {
+			break
+		}
+		fmt.Println("Invalid answer")
+	}
+	tsPattern := ans == "y"
+
 	os.MkdirAll(path, os.ModePerm)
-	createSkeleton(name, path)
+	if err := createSkeleton(name, path, tsPattern); err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func getBasePkgPath() (string, error) {
@@ -48,43 +62,68 @@ func getBasePkgPath() (string, error) {
 	return basePkgPath, nil
 }
 
-func createSkeleton(name string, path string) {
+func createSkeleton(name string, path string, tsPattern bool) error {
 	basePkgPath, err := getBasePkgPath()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
-	moduleInitFile, err := os.Create(fmt.Sprintf("%s/%s.go", path, name))
-	if err != nil {
-		fmt.Println(err)
-		return
+	if err := createModuleInitFile(path, name, basePkgPath); err != nil {
+		return err
 	}
-	fmt.Fprintf(
-		moduleInitFile,
-		`package %s
-		
-import _ "%s/modules/%s/internal/services/routes"
 
-func init() {
+	if err := os.MkdirAll(fmt.Sprintf("%s/internal/services/routes", path), os.ModePerm); err != nil {
+		return err
+	}
 
+	if err := createRoutesFile(path, basePkgPath, name); err != nil {
+		return nil
+	}
+
+	if err := createModuleFolders(path, tsPattern); err != nil {
+		return err
+	}
+
+	return nil
 }
-		`,
-		name,
-		basePkgPath,
-		name,
-	)
-	moduleInitFile.Close()
 
-	err = os.MkdirAll(fmt.Sprintf("%s/internal/services/routes", path), os.ModePerm)
-	if err != nil {
-		fmt.Println(err)
-		return
+func createModuleFolders(path string, tsPattern bool) error {
+	var moduleFolders = []string{
+		"internal/app/controllers",
+		"internal/app/commands",
+		"internal/app/queries",
+		"internal/app/services",
+
+		"internal/infrastructures/database",
+
+		"internal/domain/services",
 	}
+
+	if !tsPattern {
+		moduleFolders = append(
+			moduleFolders,
+			"internal/domain/entities",
+			"internal/domain/events",
+			"internal/domain/repositories",
+			"internal/domain/valueobjects",
+		)
+	}
+
+	for _, folder := range moduleFolders {
+		os.MkdirAll(fmt.Sprintf("%s/%s", path, folder), os.ModePerm)
+		gitKeepFile, err := os.Create(fmt.Sprintf("%s/%s/.gitkeep", path, folder))
+		if err != nil {
+			return err
+		}
+		gitKeepFile.Close()
+	}
+	return nil
+}
+
+func createRoutesFile(path string, basePkgPath string, name string) error {
 	moduleRoutesFile, err := os.Create(fmt.Sprintf("%s/internal/services/routes/routes.go", path))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	fmt.Fprintf(
 		moduleRoutesFile,
@@ -115,31 +154,28 @@ func init() {
 		name,
 	)
 	moduleRoutesFile.Close()
+	return nil
+}
 
-	var moduleFolders = []string{
-		"internal/app",
-		"internal/app/controllers",
-		"internal/app/commands",
-		"internal/app/queries",
-		"internal/app/services",
-
-		"internal/domain",
-		"internal/domain/entities",
-		"internal/domain/events",
-		"internal/domain/repositories",
-		"internal/domain/services",
-		"internal/domain/valueobjects",
-
-		"internal/infrastructures",
+func createModuleInitFile(path string, name string, basePkgPath string) error {
+	moduleInitFile, err := os.Create(fmt.Sprintf("%s/%s.go", path, name))
+	if err != nil {
+		return err
 	}
+	fmt.Fprintf(
+		moduleInitFile,
+		`package %s
+		
+import _ "%s/modules/%s/internal/services/routes"
 
-	for _, folder := range moduleFolders {
-		os.MkdirAll(fmt.Sprintf("%s/%s", path, folder), os.ModePerm)
-		gitKeepFile, err := os.Create(fmt.Sprintf("%s/%s/.gitkeep", path, folder))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		gitKeepFile.Close()
-	}
+func init() {
+
+}
+		`,
+		name,
+		basePkgPath,
+		name,
+	)
+	moduleInitFile.Close()
+	return nil
 }
