@@ -14,9 +14,9 @@ func registerRoutes(r *gin.Engine) {
 	i := do.DefaultInjector
 	authController := controllers.NewAuthController(i)
 
-	g.GET("/login", authController.Login)
+	g.POST("/login", authController.Login)
 	g.GET("/user", middleware.Auth(), authController.User)
-	g.GET("/logout", middleware.Auth(), authController.Logout)
+	g.DELETE("/logout", middleware.Auth(), authController.Logout)
 }
 
 func init() {
