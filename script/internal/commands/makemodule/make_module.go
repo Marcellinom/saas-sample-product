@@ -133,13 +133,11 @@ func createRoutesFile(path string, basePkgPath string, name string) error {
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
-	"github.com/samber/do"
 	"%s/services/web"
 )
 
 func registerRoutes(r *gin.Engine) {
 	g := r.Group("/%s")
-	i := do.DefaultInjector
 
 	// Register routes below
 

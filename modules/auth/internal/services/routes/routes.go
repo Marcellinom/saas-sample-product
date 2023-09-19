@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
-	"github.com/samber/do"
 	"its.ac.id/base-go/modules/auth/internal/app/controllers"
 	"its.ac.id/base-go/pkg/auth/middleware"
 	"its.ac.id/base-go/services/web"
@@ -11,8 +10,7 @@ import (
 
 func registerRoutes(r *gin.Engine) {
 	g := r.Group("/auth")
-	i := do.DefaultInjector
-	authController := controllers.NewAuthController(i)
+	authController := controllers.NewAuthController()
 
 	g.POST("/login", authController.Login)
 	g.GET("/user", middleware.Auth(), authController.User)

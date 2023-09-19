@@ -13,7 +13,8 @@ type AuthController struct {
 	i *do.Injector
 }
 
-func NewAuthController(i *do.Injector) *AuthController {
+func NewAuthController() *AuthController {
+	i := do.DefaultInjector
 	return &AuthController{i: i}
 }
 
