@@ -7,6 +7,9 @@ import (
 	// Services
 	_ "its.ac.id/base-go/services/config"
 	routes "its.ac.id/base-go/services/routes"
+
+	// Modules
+	_ "its.ac.id/base-go/modules/berkas"
 )
 
 func main() {
