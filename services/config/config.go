@@ -37,11 +37,20 @@ type HTTPConfig struct {
 	Secure bool `env:"HTTP_SECURE,default=false"`
 }
 
+type OidcConfig struct {
+	Provider     string   `env:"OIDC_PROVIDER,required"`
+	ClientID     string   `env:"OIDC_CLIENT_ID,required"`
+	ClientSecret string   `env:"OIDC_CLIENT_SECRET,required"`
+	RedirectURL  string   `env:"OIDC_REDIRECT_URL,required"`
+	Scopes       []string `env:"OIDC_SCOPES,default=openid,email,profile,groups"`
+}
+
 type Config interface {
 	App() AppConfig
 	Auth() AuthConfig
 	Cors() CorsConfig
 	HTTP() HTTPConfig
+	Oidc() OidcConfig
 }
 
 type ConfigImpl struct {
@@ -49,6 +58,7 @@ type ConfigImpl struct {
 	auth AuthConfig
 	cors CorsConfig
 	http HTTPConfig
+	oidc OidcConfig
 }
 
 func (c ConfigImpl) App() AppConfig {
@@ -65,6 +75,10 @@ func (c ConfigImpl) Cors() CorsConfig {
 
 func (c ConfigImpl) HTTP() HTTPConfig {
 	return c.http
+}
+
+func (c ConfigImpl) Oidc() OidcConfig {
+	return c.oidc
 }
 
 func NewConfig(i *do.Injector) (Config, error) {
@@ -91,8 +105,14 @@ func NewConfig(i *do.Injector) (Config, error) {
 
 	var http HTTPConfig
 	err = envdecode.StrictDecode(&http)
+	if err != nil {
+		return nil, err
+	}
 
-	return &ConfigImpl{app, auth, cors, http}, err
+	var oidc OidcConfig
+	err = envdecode.StrictDecode(&oidc)
+
+	return &ConfigImpl{app, auth, cors, http, oidc}, err
 }
 
 func init() {

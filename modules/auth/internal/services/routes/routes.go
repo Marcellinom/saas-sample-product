@@ -13,6 +13,7 @@ func registerRoutes(r *gin.Engine) {
 	authController := controllers.NewAuthController()
 
 	g.POST("/login", authController.Login)
+	g.GET("/callback", authController.Callback)
 	g.GET("/user", middleware.Auth(), authController.User)
 	g.DELETE("/logout", middleware.Auth(), authController.Logout)
 }
