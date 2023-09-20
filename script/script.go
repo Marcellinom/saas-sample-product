@@ -8,6 +8,7 @@ import (
 	"its.ac.id/base-go/script/internal/app"
 
 	// Commands
+	_ "its.ac.id/base-go/script/internal/commands/makecontroller"
 	_ "its.ac.id/base-go/script/internal/commands/makemodule"
 )
 
@@ -28,7 +29,7 @@ func main() {
 		for _, cmd := range cmds {
 			fmt.Printf("======== %s ========\n", cmd.Name)
 			fmt.Printf("Description\t: %s\n", cmd.Name)
-			fmt.Printf("Usage\t: %s\n", cmd.Usage)
+			fmt.Printf("Usage\t\t: %s\n", cmd.Usage)
 			fmt.Println()
 		}
 		return
