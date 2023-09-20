@@ -146,4 +146,10 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		})
 		return
 	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "login_success",
+		"data":    nil,
+	})
 }
