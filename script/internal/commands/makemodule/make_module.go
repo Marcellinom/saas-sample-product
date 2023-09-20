@@ -133,6 +133,8 @@ func createRoutesFile(path string, basePkgPath string, name string) error {
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
+	"github.com/samber/do"
+	"its.ac.id/akademik/pkg/app"
 	"%s/services/web"
 )
 
@@ -146,6 +148,11 @@ func registerRoutes(r *gin.Engine) {
 func init() {
 	web.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
 		registerRoutes(event.Msg)
+	})
+
+	app.HookBoot.Listen(func(event hooks.Event[*do.Injector]) {
+		// Register services below
+
 	})
 }
 		`,
