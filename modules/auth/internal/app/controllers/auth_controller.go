@@ -141,8 +141,4 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		})
 		return
 	}
-
-	// var claims struct {
-	// 	roles
-	// }
 }
