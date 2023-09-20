@@ -20,7 +20,9 @@ type User struct {
 
 func NewUser(id string) *User {
 	return &User{
-		id: id,
+		id:         id,
+		activeRole: "",
+		roles:      []Role{},
 	}
 }
 
