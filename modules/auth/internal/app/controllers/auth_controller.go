@@ -51,13 +51,18 @@ func (c *AuthController) User(ctx *gin.Context) {
 			"is_default":  r.IsDefault,
 		})
 	}
+	var activeRole any
+	activeRole = nil
+	if u.ActiveRole() != "" {
+		activeRole = u.ActiveRole()
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "user",
 		"data": gin.H{
 			"id":          u.Id(),
-			"active_role": u.ActiveRole(),
+			"active_role": activeRole,
 			"roles":       roles,
 		},
 	})
