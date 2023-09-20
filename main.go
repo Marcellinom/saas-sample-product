@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+
+	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	"its.ac.id/base-go/pkg/app"
 
@@ -13,6 +16,9 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Error loading .env file")
+	}
 	i := app.Boot()
 
 	server := do.MustInvoke[routes.Server](i)

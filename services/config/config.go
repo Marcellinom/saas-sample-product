@@ -1,10 +1,7 @@
 package config
 
 import (
-	"log"
-
 	"github.com/joeshaw/envdecode"
-	"github.com/joho/godotenv"
 	"github.com/samber/do"
 )
 
@@ -82,10 +79,6 @@ func (c ConfigImpl) Oidc() OidcConfig {
 }
 
 func NewConfig(i *do.Injector) (Config, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Error loading .env file")
-	}
-
 	var app AppConfig
 	err := envdecode.StrictDecode(&app)
 	if err != nil {
