@@ -38,7 +38,7 @@ func makeController(args []string) {
 		fmt.Printf("Module %s doesn't exist\n", module)
 		return
 	}
-	os.MkdirAll(fmt.Sprintf("%s/app/controllers", path), os.ModePerm)
+	os.MkdirAll(fmt.Sprintf("%s/internal/app/controllers", path), os.ModePerm)
 	if err := createSkeleton(module, name, path); err != nil {
 		fmt.Println(err)
 		return
@@ -47,7 +47,7 @@ func makeController(args []string) {
 
 func createSkeleton(module string, name string, path string) error {
 	snakeCased := strings.ToLower(strcase.SnakeCase(name))
-	controllerPath := fmt.Sprintf("%s/app/controllers/%s_controller.go", path, snakeCased)
+	controllerPath := fmt.Sprintf("%s/internal/app/controllers/%s_controller.go", path, snakeCased)
 	file, err := os.Create(controllerPath)
 	if err != nil {
 		return err
