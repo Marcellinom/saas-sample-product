@@ -7,4 +7,5 @@ import "time"
 
 type Event interface {
 	OccuredOn() time.Time
+	JSON() ([]byte, error)
 }
