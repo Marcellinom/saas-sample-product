@@ -8,7 +8,7 @@ type AggregateVersionMismatchError struct {
 	msg string
 }
 
-func NewAggregateVersionMismatchError(msg string) *AggregateVersionMismatchError {
+func NewAggregateVersionMismatchError() *AggregateVersionMismatchError {
 	return &AggregateVersionMismatchError{AggregateVersionMismatchErrorMessage}
 }
 
