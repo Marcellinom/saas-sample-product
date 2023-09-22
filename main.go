@@ -9,6 +9,7 @@ import (
 
 	// Services
 	_ "its.ac.id/base-go/services/config"
+	_ "its.ac.id/base-go/services/event"
 	routes "its.ac.id/base-go/services/web"
 
 	// Modules

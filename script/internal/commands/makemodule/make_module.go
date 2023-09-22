@@ -73,15 +73,15 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 		return err
 	}
 
-	if err := os.MkdirAll(fmt.Sprintf("%s/internal/services/routes", path), os.ModePerm); err != nil {
+	if err := createModuleFolders(path, tsPattern); err != nil {
 		return err
 	}
 
 	if err := createRoutesFile(path, basePkgPath, name); err != nil {
-		return nil
+		return err
 	}
 
-	if err := createModuleFolders(path, tsPattern); err != nil {
+	if err := createListenersFile(path, basePkgPath, name); err != nil {
 		return err
 	}
 
@@ -90,6 +90,9 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 
 func createModuleFolders(path string, tsPattern bool) error {
 	var moduleFolders = []string{
+		"internal/services/listeners",
+		"internal/services/routes",
+
 		"internal/app/controllers",
 		"internal/app/commands",
 		"internal/app/queries",
@@ -163,6 +166,38 @@ func init() {
 	return nil
 }
 
+func createListenersFile(path string, basePkgPath string, name string) error {
+	moduleListenersFile, err := os.Create(fmt.Sprintf("%s/internal/services/listeners/listeners.go", path))
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(
+		moduleListenersFile,
+		`package listeners
+
+import (
+	"github.com/mikestefanello/hooks"
+	"%s/pkg/app/common"
+	"%s/services/event"
+)
+
+func registerListeners(e *common.Event) {
+	
+}
+
+func init() {
+	event.HookEvent.Listen(func(event hooks.Event[*common.Event]) {
+		registerListeners(event.Msg)
+	})
+}
+		`,
+		basePkgPath,
+		basePkgPath,
+	)
+	moduleListenersFile.Close()
+	return nil
+}
+
 func createModuleInitFile(path string, name string, basePkgPath string) error {
 	moduleInitFile, err := os.Create(fmt.Sprintf("%s/%s.go", path, name))
 	if err != nil {
@@ -172,12 +207,18 @@ func createModuleInitFile(path string, name string, basePkgPath string) error {
 		moduleInitFile,
 		`package %s
 		
-import _ "%s/modules/%s/internal/services/routes"
+
+import (
+	_ "%s/modules/%s/internal/services/listeners"
+	_ "%s/modules/%s/internal/services/routes"
+)
 
 func init() {
 
 }
 		`,
+		name,
+		basePkgPath,
 		name,
 		basePkgPath,
 		name,
