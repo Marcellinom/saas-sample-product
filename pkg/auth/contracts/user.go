@@ -13,9 +13,10 @@ type Role struct {
 }
 
 type User struct {
-	id         string
-	activeRole string
-	roles      []Role
+	id             string
+	activeRole     string
+	roles          []Role
+	hashedPassword string
 }
 
 func NewUser(id string) *User {
@@ -73,4 +74,12 @@ func (u *User) HasPermission(permission string) bool {
 	}
 
 	return false
+}
+
+func (u *User) HashedPassword() string {
+	return u.hashedPassword
+}
+
+func (u *User) SetHashedPassword(hashedPassword string) {
+	u.hashedPassword = hashedPassword
 }

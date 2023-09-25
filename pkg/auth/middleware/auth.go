@@ -7,6 +7,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/samber/do"
+	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
 	"its.ac.id/base-go/services/config"
 )
@@ -16,11 +17,7 @@ func Auth() gin.HandlerFunc {
 		name := utils.GetCookieName()
 		cookie, err := ctx.Cookie(name)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
-				"code":    http.StatusUnauthorized,
-				"message": "unauthorized",
-				"data":    nil,
-			})
+			ctx.JSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			ctx.Abort()
 			return
 		}
@@ -29,11 +26,7 @@ func Auth() gin.HandlerFunc {
 
 		token, err := jwt.Parse([]byte(cookie), jwt.WithVerify(jwa.HS256, []byte(appCfg.Key)))
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
-				"code":    http.StatusUnauthorized,
-				"message": "unauthorized",
-				"data":    nil,
-			})
+			ctx.JSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			ctx.Abort()
 			return
 		}
