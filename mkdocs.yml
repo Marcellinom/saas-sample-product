@@ -2,3 +2,8 @@ site_name: Dokumentasi Base Go DPTSI
 site_url: https://example.com/
 theme:
   name: material
+
+nav:
+  - Beranda: index.md
+  - Memulai:
+      - Struktur Direktori: struktur-direktori.md
