@@ -10,3 +10,4 @@ nav:
   - Dasar:
       - Modul: basics/modul.md
       - Routing: basics/routing.md
+      - Controllers: basics/controllers.md
