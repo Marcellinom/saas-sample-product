@@ -3,6 +3,7 @@ package makemodule
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mikestefanello/hooks"
 	"its.ac.id/base-go/script/internal/app"
@@ -160,7 +161,7 @@ func init() {
 		`,
 		basePkgPath,
 		basePkgPath,
-		name,
+		strings.ReplaceAll(name, "_", "-"),
 	)
 	moduleRoutesFile.Close()
 	return nil
