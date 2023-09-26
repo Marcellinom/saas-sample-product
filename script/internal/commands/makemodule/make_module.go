@@ -90,12 +90,11 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 
 func createModuleFolders(path string, tsPattern bool) error {
 	var moduleFolders = []string{
-		"internal/bootstrap/listeners",
-		"internal/bootstrap/routes",
-
 		"internal/app/controllers",
 		"internal/app/commands",
+		"internal/app/listeners",
 		"internal/app/queries",
+		"internal/app/routes",
 		"internal/app/services",
 
 		"internal/infrastructures/database",
