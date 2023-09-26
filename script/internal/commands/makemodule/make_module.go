@@ -137,12 +137,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
-	"%s/pkg/app"
 	"%s/bootstrap/web"
+	"%s/pkg/app"
 )
 
+const routePrefix = "/%s"
+
 func registerRoutes(r *gin.Engine) {
-	g := r.Group("/%s")
+	g := r.Group(routePrefix)
 
 	// Register routes below
 
