@@ -136,8 +136,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
-	"its.ac.id/akademik/pkg/app"
-	"%s/services/web"
+	"%s/pkg/app"
+	"%s/bootstrap/web"
 )
 
 func registerRoutes(r *gin.Engine) {
@@ -158,6 +158,7 @@ func init() {
 	})
 }
 		`,
+		basePkgPath,
 		basePkgPath,
 		name,
 	)
