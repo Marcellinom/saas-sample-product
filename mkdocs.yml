@@ -7,3 +7,5 @@ nav:
   - Beranda: index.md
   - Memulai:
       - Struktur Direktori: struktur-direktori.md
+  - Dasar:
+      - Modul: basics/modul.md
