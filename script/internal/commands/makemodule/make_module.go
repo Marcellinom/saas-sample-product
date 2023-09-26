@@ -124,7 +124,7 @@ func createModuleFolders(path string, tsPattern bool) error {
 }
 
 func createRoutesFile(path string, basePkgPath string, name string) error {
-	moduleRoutesFile, err := os.Create(fmt.Sprintf("%s/internal/services/routes/routes.go", path))
+	moduleRoutesFile, err := os.Create(fmt.Sprintf("%s/internal/app/routes/routes.go", path))
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func init() {
 }
 
 func createListenersFile(path string, basePkgPath string, name string) error {
-	moduleListenersFile, err := os.Create(fmt.Sprintf("%s/internal/services/listeners/listeners.go", path))
+	moduleListenersFile, err := os.Create(fmt.Sprintf("%s/internal/app/listeners/listeners.go", path))
 	if err != nil {
 		return err
 	}
@@ -208,8 +208,8 @@ func createModuleInitFile(path string, name string, basePkgPath string) error {
 		
 
 import (
-	_ "%s/modules/%s/internal/services/listeners"
-	_ "%s/modules/%s/internal/services/routes"
+	_ "%s/modules/%s/internal/app/listeners"
+	_ "%s/modules/%s/internal/app/routes"
 )
 
 func init() {
