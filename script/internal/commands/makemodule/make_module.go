@@ -100,6 +100,7 @@ func createModuleFolders(path string, tsPattern bool) error {
 		"internal/infrastructures/database",
 
 		"internal/domain/services",
+		"internal/domain/repositories",
 	}
 
 	if !tsPattern {
@@ -107,7 +108,6 @@ func createModuleFolders(path string, tsPattern bool) error {
 			moduleFolders,
 			"internal/domain/entities",
 			"internal/domain/events",
-			"internal/domain/repositories",
 			"internal/domain/valueobjects",
 		)
 	}
