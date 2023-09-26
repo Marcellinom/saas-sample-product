@@ -9,9 +9,9 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
-	"its.ac.id/base-go/services/config"
 )
 
 const (

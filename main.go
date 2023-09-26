@@ -8,9 +8,9 @@ import (
 	"its.ac.id/base-go/pkg/app"
 
 	// Services
-	_ "its.ac.id/base-go/services/config"
-	_ "its.ac.id/base-go/services/event"
-	routes "its.ac.id/base-go/services/web"
+	_ "its.ac.id/base-go/bootstrap/config"
+	_ "its.ac.id/base-go/bootstrap/event"
+	routes "its.ac.id/base-go/bootstrap/web"
 
 	// Modules
 	_ "its.ac.id/base-go/modules/auth"

@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
-	"its.ac.id/base-go/services/config"
 	"its.ac.id/oidc-client"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gosimple/slug"
 	"github.com/samber/do"
-	"its.ac.id/base-go/services/config"
+	"its.ac.id/base-go/bootstrap/config"
 )
 
 func GetCookieName() string {

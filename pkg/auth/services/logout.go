@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
-	"its.ac.id/base-go/services/config"
 )
 
 func Logout(ctx *gin.Context) error {

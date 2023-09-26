@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app"
-	"its.ac.id/base-go/services/config"
 )
 
 type Server interface {
