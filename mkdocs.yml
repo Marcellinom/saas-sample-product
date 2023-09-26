@@ -9,3 +9,4 @@ nav:
       - Struktur Direktori: struktur-direktori.md
   - Dasar:
       - Modul: basics/modul.md
+      - Routing: basics/routing.md
