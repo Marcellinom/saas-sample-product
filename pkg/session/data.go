@@ -16,8 +16,9 @@ type Data struct {
 	expiredAt *time.Time
 }
 
-func (d Data) Get(key string) interface{} {
-	return d.data[key]
+func (d Data) Get(key string) (interface{}, bool) {
+	data, ok := d.data[key]
+	return data, ok
 }
 
 func (d Data) Set(key string, value interface{}) {
