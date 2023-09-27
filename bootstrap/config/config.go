@@ -51,6 +51,10 @@ type SessionConfig struct {
 	CookiePath string `env:"SESSION_PATH,default=/"`
 	Domain     string `env:"SESSION_DOMAIN,default=localhost"`
 	Secure     bool   `env:"SESSION_SECURE_COOKIE,default=false"`
+
+	// Firestore session adapter
+	FirestoreProjectID  string `env:"SESSION_FIRESTORE_PROJECT_ID"`
+	FirestoreCollection string `env:"SESSION_FIRESTORE_COLLECTION,default=sessions"`
 }
 
 type Config interface {

@@ -1,12 +1,19 @@
 package session
 
-import "github.com/gin-gonic/gin"
+import (
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
+)
 
 type Data struct {
-	ctx     *gin.Context
-	id      string
-	data    map[string]interface{}
-	storage Storage
+	ctx       *gin.Context
+	id        string
+	data      map[string]interface{}
+	storage   Storage
+	expiredAt *time.Time
 }
 
 func (d Data) Get(key string) interface{} {
@@ -28,15 +35,22 @@ func (d Data) Clear() {
 }
 
 func (d Data) Save() error {
-	return d.storage.Save(d.ctx, d.id, d.data)
+	return d.storage.Save(d.ctx, d.id, d.data, *d.expiredAt)
 }
 
-func NewData(ctx *gin.Context, id string, data map[string]interface{}, storage Storage) Data {
+func NewData(ctx *gin.Context, id string, data map[string]interface{}, storage Storage, expiredAt *time.Time) Data {
+	if expiredAt == nil {
+		expiredAt = new(time.Time)
+		cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
+		*expiredAt = time.Now().Add(time.Second * time.Duration(cfg.Lifetime))
+	}
+
 	return Data{
-		ctx:     ctx,
-		id:      id,
-		data:    data,
-		storage: storage,
+		ctx:       ctx,
+		id:        id,
+		data:      data,
+		storage:   storage,
+		expiredAt: expiredAt,
 	}
 }
 

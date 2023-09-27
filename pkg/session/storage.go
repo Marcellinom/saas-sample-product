@@ -1,9 +1,13 @@
 package session
 
-import "github.com/gin-gonic/gin"
+import (
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Storage interface {
-	Get(ctx *gin.Context, sessionId string) (*Data, error)
-	Save(ctx *gin.Context, sessionId string, data map[string]interface{}) error
-	Delete(ctx *gin.Context, sessionId string) error
+	Get(ctx *gin.Context, id string) (*Data, error)
+	Save(ctx *gin.Context, id string, data map[string]interface{}, expiredAt time.Time) error
+	Delete(ctx *gin.Context, id string) error
 }

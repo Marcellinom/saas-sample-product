@@ -10,8 +10,15 @@ import (
 	"its.ac.id/base-go/pkg/session"
 )
 
-func StartSession(storage session.Storage) gin.HandlerFunc {
+func StartSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		storage, err := do.Invoke[session.Storage](do.DefaultInjector)
+		if err != nil {
+			panic(err)
+		}
+		if storage == nil {
+			panic("Session storage not configured. Please configure it first in bootstrap/web/web.go")
+		}
 		cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
 
 		// Initialize session data
@@ -21,7 +28,7 @@ func StartSession(storage session.Storage) gin.HandlerFunc {
 		if err != nil {
 			// Generate new session id if not exist
 			sessionId = uuid.NewString()
-			data = session.NewData(ctx, sessionId, make(map[string]interface{}), storage)
+			data = session.NewData(ctx, sessionId, make(map[string]interface{}), storage, nil)
 		} else {
 			// Get session data from storage
 			sess, err := storage.Get(ctx, sessionId)
@@ -35,6 +42,9 @@ func StartSession(storage session.Storage) gin.HandlerFunc {
 			}
 			if sess != nil {
 				data = *sess
+			} else {
+				sessionId = uuid.NewString()
+				data = session.NewData(ctx, sessionId, make(map[string]interface{}), storage, nil)
 			}
 		}
 

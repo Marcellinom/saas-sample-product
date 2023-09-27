@@ -11,7 +11,7 @@ import (
 	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app"
-	"its.ac.id/base-go/pkg/session/adapters"
+	"its.ac.id/base-go/pkg/session"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
 
@@ -21,6 +21,9 @@ type Server interface {
 
 func init() {
 	app.HookBoot.Listen(func(e hooks.Event[*do.Injector]) {
+		do.Provide[session.Storage](e.Msg, func(i *do.Injector) (session.Storage, error) {
+			return setupFirestoreSessionAdapter(i)
+		})
 		do.Provide[Server](e.Msg, NewGinServer)
 	})
 }
@@ -72,9 +75,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 
 	// Global middleware
 	g.engine.Use(gin.Recovery())
-	// TODO: set secret key
-	store := adapters.NewCookie()
-	g.engine.Use(middleware.StartSession(store))
+	g.engine.Use(middleware.StartSession())
 	g.engine.Use(g.initiateCorsMiddleware())
 
 	HookBuildRouter.Dispatch(g.engine)
