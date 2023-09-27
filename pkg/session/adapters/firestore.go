@@ -41,8 +41,8 @@ func (f *Firestore) Get(ctx *gin.Context, id string) (*session.Data, error) {
 		return nil, nil
 	}
 
-	sess := session.NewData(ctx, id, data.Data, f, &data.ExpiredAt)
-	return &sess, nil
+	sess := session.NewData(ctx, id, data.Data, f, data.ExpiredAt)
+	return sess, nil
 }
 
 func (f *Firestore) Save(ctx *gin.Context, id string, data map[string]interface{}, expiredAt time.Time) error {
