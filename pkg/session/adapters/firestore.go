@@ -13,6 +13,7 @@ import (
 type FirestoreData struct {
 	Data      map[string]interface{} `firestore:"data"`
 	ExpiredAt time.Time              `firestore:"expired_at"`
+	CSRFToken string                 `firestore:"csrf_token"`
 }
 
 type Firestore struct {
@@ -41,13 +42,13 @@ func (f *Firestore) Get(ctx *gin.Context, id string) (*session.Data, error) {
 		return nil, nil
 	}
 
-	sess := session.NewData(ctx, id, data.Data, f, data.ExpiredAt)
+	sess := session.NewData(ctx, id, data.CSRFToken, data.Data, f, data.ExpiredAt)
 	return sess, nil
 }
 
-func (f *Firestore) Save(ctx *gin.Context, id string, data map[string]interface{}, expiredAt time.Time) error {
+func (f *Firestore) Save(ctx *gin.Context, id string, data map[string]interface{}, expiredAt time.Time, csrfToken string) error {
 	ref := f.client.Collection(f.collection).Doc(id)
-	_, err := ref.Set(ctx, FirestoreData{data, expiredAt})
+	_, err := ref.Set(ctx, FirestoreData{data, expiredAt, csrfToken})
 	return err
 }
 

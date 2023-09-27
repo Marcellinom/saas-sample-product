@@ -62,6 +62,14 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		})
 		return
 	}
+	if err := sess.RegenerateCSRFToken(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_regenerate_csrf_token",
+			"data":    nil,
+		})
+		return
+	}
 
 	session.AddCookieToResponse(ctx, sess.Id())
 

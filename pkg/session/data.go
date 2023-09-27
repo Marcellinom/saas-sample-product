@@ -12,6 +12,7 @@ import (
 type Data struct {
 	ctx       *gin.Context
 	id        string
+	csrfToken string
 	data      map[string]interface{}
 	storage   Storage
 	expiredAt time.Time
@@ -19,6 +20,10 @@ type Data struct {
 
 func (d *Data) Id() string {
 	return d.id
+}
+
+func (d *Data) CSRFToken() string {
+	return d.csrfToken
 }
 
 func (d *Data) Get(key string) (interface{}, bool) {
@@ -41,7 +46,7 @@ func (d *Data) Clear() {
 }
 
 func (d *Data) Save() error {
-	return d.storage.Save(d.ctx, d.id, d.data, d.expiredAt)
+	return d.storage.Save(d.ctx, d.id, d.data, d.expiredAt, d.csrfToken)
 }
 
 func (d *Data) Regenerate() error {
@@ -57,6 +62,11 @@ func (d *Data) Invalidate() error {
 	return d.Save()
 }
 
+func (d *Data) RegenerateCSRFToken() error {
+	d.csrfToken = uuid.NewString()
+	return d.Save()
+}
+
 func NewEmptyData(ctx *gin.Context, storage Storage) *Data {
 	cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
 	expiredAt := time.Now().Add(time.Second * time.Duration(cfg.Lifetime))
@@ -64,16 +74,18 @@ func NewEmptyData(ctx *gin.Context, storage Storage) *Data {
 	return &Data{
 		ctx:       ctx,
 		id:        uuid.NewString(),
+		csrfToken: uuid.NewString(),
 		data:      make(map[string]interface{}),
 		storage:   storage,
 		expiredAt: expiredAt,
 	}
 }
 
-func NewData(ctx *gin.Context, id string, data map[string]interface{}, storage Storage, expiredAt time.Time) *Data {
+func NewData(ctx *gin.Context, id string, csrfToken string, data map[string]interface{}, storage Storage, expiredAt time.Time) *Data {
 	return &Data{
 		ctx:       ctx,
 		id:        id,
+		csrfToken: csrfToken,
 		data:      data,
 		storage:   storage,
 		expiredAt: expiredAt,

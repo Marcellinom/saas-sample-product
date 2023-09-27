@@ -13,4 +13,6 @@ func AddCookieToResponse(ctx *gin.Context, sessionId string) {
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	// Set session cookie
 	ctx.SetCookie(cfg.CookieName, sessionId, cfg.Lifetime, cfg.CookiePath, cfg.Domain, cfg.Secure, true)
+	sess := Default(ctx)
+	ctx.SetCookie("XSRF-TOKEN", sess.csrfToken, cfg.Lifetime, cfg.CookiePath, cfg.Domain, cfg.Secure, true)
 }
