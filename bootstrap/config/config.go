@@ -16,12 +16,6 @@ type AppConfig struct {
 	URL   string `env:"APP_URL,default=http://localhost"`
 }
 
-type AuthConfig struct {
-	CookieDomain string `env:"AUTH_COOKIE_DOMAIN,default=localhost"`
-	CookiePath   string `env:"AUTH_COOKIE_PATH,default=/"`
-	MaxAge       int    `env:"AUTH_EXPIRATION,default=3600"`
-}
-
 type CorsConfig struct {
 	Paths          []string `env:"CORS_PATHS,default=*"`
 	AllowedMethods []string `env:"CORS_ALLOWED_METHODS,default=*"`
@@ -59,7 +53,6 @@ type SessionConfig struct {
 
 type Config interface {
 	App() AppConfig
-	Auth() AuthConfig
 	Cors() CorsConfig
 	HTTP() HTTPConfig
 	Oidc() OidcConfig
@@ -68,7 +61,6 @@ type Config interface {
 
 type ConfigImpl struct {
 	app     AppConfig
-	auth    AuthConfig
 	cors    CorsConfig
 	http    HTTPConfig
 	oidc    OidcConfig
@@ -77,10 +69,6 @@ type ConfigImpl struct {
 
 func (c ConfigImpl) App() AppConfig {
 	return c.app
-}
-
-func (c ConfigImpl) Auth() AuthConfig {
-	return c.auth
 }
 
 func (c ConfigImpl) Cors() CorsConfig {
@@ -102,11 +90,6 @@ func (c ConfigImpl) Session() SessionConfig {
 func NewConfig(i *do.Injector) (Config, error) {
 	var app AppConfig
 	err := envdecode.StrictDecode(&app)
-	if err != nil {
-		return nil, err
-	}
-	var auth AuthConfig
-	err = envdecode.StrictDecode(&auth)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +123,7 @@ func NewConfig(i *do.Injector) (Config, error) {
 		session.CookieName = name
 	}
 
-	return &ConfigImpl{app, auth, cors, http, oidc, session}, err
+	return &ConfigImpl{app, cors, http, oidc, session}, err
 }
 
 func init() {

@@ -4,33 +4,43 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/samber/do"
-	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app/common"
+	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
+	"its.ac.id/base-go/pkg/session"
 )
 
 func Auth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		name := utils.GetCookieName()
-		cookie, err := ctx.Cookie(name)
-		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-			ctx.Abort()
+		sess := session.Default(ctx)
+		idIf, ok := sess.Get("user.id")
+		if !ok {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			return
 		}
-		cfg := do.MustInvoke[config.Config](do.DefaultInjector)
-		appCfg := cfg.App()
+		// TODO: Unserialize roles
+		// activeRoleIf, ok := sess.Get("user.active_role")
+		// if !ok {
+		// 	ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+		// 	return
+		// }
+		// rolesJsonIf, ok := sess.Get("user.roles")
+		// if !ok {
+		// 	ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+		// 	return
+		// }
+		id, ok := idIf.(string)
+		if !ok {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			return
+		}
+		// activeRole, ok := activeRoleIf.(string)
+		// if !ok {
+		// 	ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+		// 	return
+		// }
 
-		token, err := jwt.Parse([]byte(cookie), jwt.WithVerify(jwa.HS256, []byte(appCfg.Key)))
-		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-			ctx.Abort()
-			return
-		}
-		u := utils.UserFromToken(token)
+		u := contracts.NewUser(id)
 
 		ctx.Set(utils.UserKey, u)
 		ctx.Next()

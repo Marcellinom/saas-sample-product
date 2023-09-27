@@ -7,6 +7,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
+	"its.ac.id/base-go/pkg/session"
 )
 
 const (
@@ -20,30 +21,25 @@ const (
 	ErrorRetrieveUserInfo     = "error_retrieve_user_info"
 )
 
-type CookieProvider interface {
-	Cookie(name string) (string, error)
-	SetCookie(name string, value string)
-}
-
 type QueryParamsProvider interface {
 	GetQuery(key string) (string, bool)
 }
 
 type Client struct {
 	p           *oidc.Provider
-	cp          CookieProvider
+	sess        *session.Data
 	qp          QueryParamsProvider
 	ctx         context.Context
 	verifyState bool
 }
 
-func NewClient(ctx context.Context, pUrl string, cp CookieProvider, qp QueryParamsProvider) (*Client, error) {
+func NewClient(ctx context.Context, pUrl string, sess *session.Data, qp QueryParamsProvider) (*Client, error) {
 	provider, err := oidc.NewProvider(ctx, pUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{provider, cp, qp, ctx, true}, nil
+	return &Client{provider, sess, qp, ctx, true}, nil
 }
 
 func (c *Client) SetVerifyState(verifyState bool) {
@@ -65,7 +61,8 @@ func (c *Client) RedirectURL(clientID string, clientSecret string, redirectURL s
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
 	state := uuid.NewString()
-	c.cp.SetCookie(StateKey, state)
+	c.sess.Set(StateKey, state)
+	c.sess.Save()
 	return cfg.AuthCodeURL(state)
 }
 
@@ -76,11 +73,12 @@ func (c *Client) UserInfo(clientID string, clientSecret string, redirectURL stri
 	}
 	if c.verifyState {
 		state, exist := c.qp.GetQuery("state")
-		cookieState, err := c.cp.Cookie(StateKey)
-		c.cp.SetCookie(StateKey, "")
-		if err != nil {
-			return nil, err
+		cookieState, ok := c.sess.Get(StateKey)
+		if !ok {
+			cookieState = ""
 		}
+		c.sess.Delete(StateKey)
+		c.sess.Save()
 
 		if state == "" || !exist || state != cookieState {
 			return nil, errors.New(InvalidState)
@@ -114,7 +112,8 @@ func (c *Client) UserInfo(clientID string, clientSecret string, redirectURL stri
 	if err != nil {
 		return nil, errors.New(InvalidIdToken)
 	}
-	c.cp.SetCookie(IdTokenKey, rawIDToken)
+	c.sess.Set(IdTokenKey, rawIDToken)
+	c.sess.Save()
 	userInfo, err := c.p.UserInfo(c.ctx, oauth2.StaticTokenSource(token))
 	if err != nil {
 		return nil, errors.New(ErrorRetrieveUserInfo)

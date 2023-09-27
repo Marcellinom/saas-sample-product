@@ -8,6 +8,7 @@ import (
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
+	"its.ac.id/base-go/pkg/session"
 	"its.ac.id/oidc-client"
 )
 
@@ -68,24 +69,10 @@ func (c *AuthController) User(ctx *gin.Context) {
 	})
 }
 
-type OidcCookieProvider struct {
-	ctx *gin.Context
-	cfg config.Config
-}
-
-func (c *OidcCookieProvider) Cookie(name string) (string, error) {
-	return c.ctx.Cookie(name)
-}
-
-func (c *OidcCookieProvider) SetCookie(name string, value string) {
-	cfg := c.cfg.Auth()
-	c.ctx.SetCookie(name, value, 0, cfg.CookiePath, cfg.CookieDomain, c.cfg.HTTP().Secure, true)
-}
-
 func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
-	cp := &OidcCookieProvider{ctx, c.cfg}
 	cfg := c.cfg.Oidc()
-	op, err := oidc.NewClient(ctx, cfg.Provider, cp, ctx)
+	sess := session.Default(ctx)
+	op, err := oidc.NewClient(ctx, cfg.Provider, sess, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +133,17 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		})
 		return
 	}
+	sess := session.Default(ctx)
+	if err := sess.Regenerate(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_regenerate_session",
+			"data":    nil,
+		})
+		return
+	}
 
+	session.AddCookieToResponse(ctx, sess.Id())
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "login_success",
