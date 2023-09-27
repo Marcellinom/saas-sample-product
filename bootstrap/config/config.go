@@ -1,6 +1,9 @@
 package config
 
 import (
+	"strings"
+
+	"github.com/gosimple/slug"
 	"github.com/joeshaw/envdecode"
 	"github.com/samber/do"
 )
@@ -42,20 +45,30 @@ type OidcConfig struct {
 	Scopes       []string `env:"OIDC_SCOPES,default=openid,email,profile,groups"`
 }
 
+type SessionConfig struct {
+	Lifetime   int    `env:"SESSION_LIFETIME,default=7200"`
+	CookieName string `env:"SESSION_NAME,default=base-go"`
+	CookiePath string `env:"SESSION_PATH,default=/"`
+	Domain     string `env:"SESSION_DOMAIN,default=localhost"`
+	Secure     bool   `env:"SESSION_SECURE_COOKIE,default=false"`
+}
+
 type Config interface {
 	App() AppConfig
 	Auth() AuthConfig
 	Cors() CorsConfig
 	HTTP() HTTPConfig
 	Oidc() OidcConfig
+	Session() SessionConfig
 }
 
 type ConfigImpl struct {
-	app  AppConfig
-	auth AuthConfig
-	cors CorsConfig
-	http HTTPConfig
-	oidc OidcConfig
+	app     AppConfig
+	auth    AuthConfig
+	cors    CorsConfig
+	http    HTTPConfig
+	oidc    OidcConfig
+	session SessionConfig
 }
 
 func (c ConfigImpl) App() AppConfig {
@@ -76,6 +89,10 @@ func (c ConfigImpl) HTTP() HTTPConfig {
 
 func (c ConfigImpl) Oidc() OidcConfig {
 	return c.oidc
+}
+
+func (c ConfigImpl) Session() SessionConfig {
+	return c.session
 }
 
 func NewConfig(i *do.Injector) (Config, error) {
@@ -105,7 +122,21 @@ func NewConfig(i *do.Injector) (Config, error) {
 	var oidc OidcConfig
 	err = envdecode.StrictDecode(&oidc)
 
-	return &ConfigImpl{app, auth, cors, http, oidc}, err
+	if err != nil {
+		return nil, err
+	}
+	var session SessionConfig
+	err = envdecode.StrictDecode(&session)
+	if err != nil {
+		return nil, err
+	}
+	if session.CookieName == "" || session.CookieName == "base-go" {
+		name := slug.Make(app.Name)
+		name = strings.ReplaceAll(name, "-", "_") + "_session"
+		session.CookieName = name
+	}
+
+	return &ConfigImpl{app, auth, cors, http, oidc, session}, err
 }
 
 func init() {
