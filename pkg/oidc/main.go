@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	StateKey    = "oidc_state"
-	IdTokenKey  = "oidc_id_token"
+	StateKey    = "oidc.state"
+	IdTokenKey  = "oidc.id_token"
 	StateMaxAge = 60 * 5 // 5 minutes
 
 	AuthorizationCodeNotFound = "authorization_code_not_found"
