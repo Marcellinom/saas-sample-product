@@ -25,7 +25,26 @@ func NewAuthController() *AuthController {
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	err := services.Logout(ctx)
+	op, err := c.getOidcClient(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_get_oidc_client",
+			"data":    nil,
+		})
+		return
+	}
+	endSessionEndpoint, err := op.RPInitiatedLogout()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_get_end_session_endpoint",
+			"data":    nil,
+		})
+		return
+	}
+
+	err = services.Logout(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
@@ -38,7 +57,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "logout_success",
-		"data":    nil,
+		"data":    endSessionEndpoint,
 	})
 }
 
