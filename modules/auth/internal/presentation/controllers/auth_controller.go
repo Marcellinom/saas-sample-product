@@ -8,8 +8,8 @@ import (
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
+	"its.ac.id/base-go/pkg/oidc"
 	"its.ac.id/base-go/pkg/session"
-	"its.ac.id/oidc-client"
 )
 
 type AuthController struct {
