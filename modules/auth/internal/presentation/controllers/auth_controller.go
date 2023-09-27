@@ -54,18 +54,12 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 	sess := session.Default(ctx)
-	if err := sess.Invalidate(); err != nil {
+	sess.Invalidate()
+	sess.RegenerateCSRFToken()
+	if err := sess.Save(); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
-			"message": "unable_to_invalidate_session",
-			"data":    nil,
-		})
-		return
-	}
-	if err := sess.RegenerateCSRFToken(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_regenerate_csrf_token",
+			"message": "unable_to_save_session",
 			"data":    nil,
 		})
 		return
@@ -172,10 +166,11 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 	sess := session.Default(ctx)
-	if err := sess.Regenerate(); err != nil {
+	sess.Regenerate()
+	if err := sess.Save(); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
-			"message": "unable_to_regenerate_session",
+			"message": "unable_to_save_session",
 			"data":    nil,
 		})
 		return

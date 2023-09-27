@@ -31,14 +31,17 @@ func (d *Data) Get(key string) (interface{}, bool) {
 	return data, ok
 }
 
+// Setiap set harus disertai dengan save
 func (d *Data) Set(key string, value interface{}) {
 	d.data[key] = value
 }
 
+// Setiap delete harus disertai dengan save
 func (d *Data) Delete(key string) {
 	delete(d.data, key)
 }
 
+// Setiap clear harus disertai dengan save
 func (d *Data) Clear() {
 	for key := range d.data {
 		delete(d.data, key)
@@ -49,19 +52,20 @@ func (d *Data) Save() error {
 	return d.storage.Save(d.ctx, d.id, d.data, d.expiredAt, d.csrfToken)
 }
 
-func (d *Data) Regenerate() error {
+// Setiap regenerate harus disertai dengan save dan add cookie to response
+func (d *Data) Regenerate() {
 	d.storage.Delete(d.ctx, d.id)
 	d.id = uuid.NewString()
-	return d.Save()
 }
 
-func (d *Data) Invalidate() error {
+// Setiap invalidate harus disertai dengan save dan add cookie to response
+func (d *Data) Invalidate() {
 	d.storage.Delete(d.ctx, d.id)
 	d.id = uuid.NewString()
 	d.data = make(map[string]interface{})
-	return d.Save()
 }
 
+// Setiap regenerate csrf harus disertai dengan save dan add cookie to response
 func (d *Data) RegenerateCSRFToken() error {
 	d.csrfToken = uuid.NewString()
 	return d.Save()
