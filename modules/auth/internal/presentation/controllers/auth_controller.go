@@ -53,6 +53,17 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		})
 		return
 	}
+	sess := session.Default(ctx)
+	if err := sess.Invalidate(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_invalidate_session",
+			"data":    nil,
+		})
+		return
+	}
+
+	session.AddCookieToResponse(ctx, sess.Id())
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,

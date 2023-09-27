@@ -50,6 +50,13 @@ func (d *Data) Regenerate() error {
 	return d.Save()
 }
 
+func (d *Data) Invalidate() error {
+	d.storage.Delete(d.ctx, d.id)
+	d.id = uuid.NewString()
+	d.data = make(map[string]interface{})
+	return d.Save()
+}
+
 func NewEmptyData(ctx *gin.Context, storage Storage) *Data {
 	cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
 	expiredAt := time.Now().Add(time.Second * time.Duration(cfg.Lifetime))
