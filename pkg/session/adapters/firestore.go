@@ -37,9 +37,11 @@ func (f *Firestore) Get(ctx *gin.Context, id string) (*session.Data, error) {
 	if err := doc.DataTo(&data); err != nil {
 		return nil, err
 	}
+	if data.ExpiredAt.Before(time.Now()) {
+		return nil, nil
+	}
 
 	sess := session.NewData(ctx, id, data.Data, f, &data.ExpiredAt)
-
 	return &sess, nil
 }
 
