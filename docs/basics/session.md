@@ -138,6 +138,9 @@ func Handler(ctx *gin.Context) {
 		})
 		return
 	}
+
+    // Fungsi ini wajib dipanggil untuk mengganti session ID yang ada pada cookie dengan nilai baru yang digenerate
+	session.AddCookieToResponse(ctx, sess.Id())
 }
 ```
 
