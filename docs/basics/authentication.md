@@ -108,6 +108,26 @@ func basicAuthRoutes(r *gin.Engine) {
 }
 ```
 
+## Mendapatkan User
+
+User dapat diperoleh melalui method `User()` dengan argumen `*gin.Context` pada package `its.ac.id/base-go/pkg/auth/services`.
+
+```go
+r.GET("/basic-auth", authMiddleware.Handle(), func(c *gin.Context) {
+    user := services.User(c)
+
+    c.JSON(http.StatusOK, gin.H{
+        "code":    http.StatusOK,
+        "message": "user",
+        "data": gin.H{
+            "id":          user.Id(),
+            "active_role": nil,
+            "roles":       make([]string, 0),
+        },
+    })
+})
+```
+
 ## Log Out
 
 Untuk melakukan log out, Anda dapat memanggil fungsi `Logout()`. Direkomendasikan untuk invalidate user session dan melakukan regenerate CSRF token setelah proses log out.
