@@ -14,7 +14,7 @@ func VerifyCSRFToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		sess := session.Default(ctx)
 		sessionCSRFToken := sess.CSRFToken()
-		requestCSRFToken := ctx.GetHeader("X-XSRF-TOKEN")
+		requestCSRFToken := ctx.GetHeader("X-CSRF-TOKEN")
 
 		// Skip CSRF token verification for some methods
 		for _, method := range MethodsWithoutCSRFToken {
