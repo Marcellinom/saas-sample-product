@@ -12,6 +12,13 @@ func registerRoutes(r *gin.Engine) {
 	g := r.Group("/auth")
 	authController := controllers.NewAuthController()
 
+	g.GET("/csrf-cookie", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data":    nil,
+		})
+	})
 	g.POST("/login", authController.Login)
 	g.GET("/callback", authController.Callback)
 	g.GET("/user", middleware.Auth(), authController.User)

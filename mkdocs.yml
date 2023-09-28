@@ -10,6 +10,7 @@ nav:
   - Dasar:
       - Modul: basics/modul.md
       - Routing: basics/routing.md
+      - Proteksi CSRF: basics/csrf.md
       - Controllers: basics/controllers.md
       - HTTP Session: basics/session.md
       - Authentication: basics/authentication.md
