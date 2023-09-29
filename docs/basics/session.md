@@ -6,7 +6,7 @@ Karena aplikasi berbasis HTTP tidak memiliki state, session menyediakan cara unt
 
 ## Konfigurasi
 
-Konfigurasi dari session aplikasi disimpan pada berkas `bootstrap/web/web.go`. Secara bawaan, base project ini dikonfigurasi menggunakan Firestore sebagai adapter dari session. Adapter tersebut menentukan dimana data dari session akan disimpan untuk setiap request. Berikut adalah adapter bawaan yang ada di dalam base project ini:
+Konfigurasi dari session aplikasi disimpan pada berkas `bootstrap/web/web.go`. Secara bawaan, base project ini dikonfigurasi menggunakan SQLite sebagai adapter dari session. Adapter tersebut menentukan dimana data dari session akan disimpan untuk setiap request. Berikut adalah adapter bawaan yang ada di dalam base project ini:
 
 - Firestore - session disimpan di dalam database [Firestore](https://cloud.google.com/firestore)
 - GORM - session disimpan di dalam database yang didukung oleh [GORM](https://gorm.io/)
