@@ -23,6 +23,13 @@ func init() {
 	app.HookBoot.Listen(func(e hooks.Event[*do.Injector]) {
 		do.Provide[session.Storage](e.Msg, func(i *do.Injector) (session.Storage, error) {
 			return setupFirestoreSessionAdapter(i)
+
+			// Contoh penggunaan adapter GORM dengan SQLite
+			// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+			// if err != nil {
+			// 	panic("failed to connect database")
+			// }
+			// return adapters.NewGorm(db), nil
 		})
 		do.Provide[Server](e.Msg, NewGinServer)
 	})

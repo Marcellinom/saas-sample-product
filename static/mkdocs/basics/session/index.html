@@ -466,6 +466,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#gorm" class="md-nav__link">
+    GORM
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -649,6 +656,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#gorm" class="md-nav__link">
+    GORM
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -742,15 +756,15 @@
 <p>Karena aplikasi berbasis HTTP tidak memiliki state, session menyediakan cara untuk menyimpan informasi tentang pengguna di beberapa request. Informasi pengguna tersebut biasanya ditempatkan di penyimpanan/backend persisten yang dapat diakses dari request berikutnya.</p>
 <h2 id="konfigurasi">Konfigurasi</h2>
 <p>Konfigurasi dari session aplikasi disimpan pada berkas <code>bootstrap/web/web.go</code>. Secara bawaan, base project ini dikonfigurasi menggunakan Firestore sebagai adapter dari session. Adapter tersebut menentukan dimana data dari session akan disimpan untuk setiap request. Berikut adalah adapter bawaan yang ada di dalam base project ini:</p>
-<blockquote>
-<p>Adapter seperti SQL Server akan ditambahkan dalam waktu dekat</p>
-</blockquote>
 <ul>
 <li>Firestore - session disimpan di dalam database <a href="https://cloud.google.com/firestore">Firestore</a></li>
+<li>GORM - session disimpan di dalam database yang didukung oleh <a href="https://gorm.io/">GORM</a></li>
 </ul>
 <h2 id="prasyarat-adapter">Prasyarat Adapter</h2>
 <h3 id="firestore">Firestore</h3>
 <p>Dengan menggunakan adapter ini, maka Anda perlu mengkonfigurasi Firestore dengan mengisi nilai <code>SESSION_FIRESTORE_PROJECT_ID</code> pada <code>.env</code> dengan nilai yang sesuai dengan Project ID yang akan digunakan.</p>
+<h3 id="gorm">GORM</h3>
+<p>Buat koneksi ke database sesuai dengan <a href="https://gorm.io/docs/connecting_to_the_database.html">instruksi pada GORM</a> kemudian panggil fungsi <code>adapters.NewGorm()</code> dengan argumen koneksi database yang telah dibuat.</p>
 <h2 id="interaksi-dengan-session">Interaksi Dengan Session</h2>
 <p>Instance dari session dapat diambil melalui method <code>Default()</code> pada <code>its.ac.id/base-go/pkg/session</code> dengan memberi argumen berupa <code>*gin.Context</code>.</p>
 <pre><code class="language-go">package something
