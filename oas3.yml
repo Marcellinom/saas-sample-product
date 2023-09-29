@@ -186,7 +186,6 @@ components:
       type: apiKey
       in: cookie
       name: dptsi_base_go_session # cookie name
-    # TODO: csrf token di go masih case sensitive
     csrfToken:
       type: apiKey
       in: header
