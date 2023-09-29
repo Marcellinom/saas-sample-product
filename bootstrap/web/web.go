@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app"
+	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/session"
 	"its.ac.id/base-go/pkg/session/adapters"
 	"its.ac.id/base-go/pkg/session/middleware"
@@ -85,7 +86,9 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	})
 
 	// Global middleware
-	g.engine.Use(gin.Recovery())
+	g.engine.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
+		c.JSON(http.StatusInternalServerError, common.InternalServerErrorResponse)
+	}))
 	g.engine.StaticFile("/oas3.yml", "./oas3.yml")
 	g.engine.Static("/doc/api", "./static/swagger-ui")
 	g.engine.Static("/doc/project", "./static/mkdocs")
