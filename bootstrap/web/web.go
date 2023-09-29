@@ -75,6 +75,8 @@ func (g *GinServer) buildRouter() *gin.Engine {
 
 	// Global middleware
 	g.engine.Use(gin.Recovery())
+	g.engine.StaticFile("/oas3.yml", "./oas3.yml")
+	g.engine.Static("/doc", "./static/swagger-ui")
 	g.engine.Use(middleware.StartSession())
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())

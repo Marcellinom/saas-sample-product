@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  version: 0.1.0
+  title: Base Project
+  description: Dokumentasi untuk API Base Project
+paths:
+  /auth/csrf-cookie:
+    get:
+      description: Dummy route to set CSRF cookie in browser
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: null
