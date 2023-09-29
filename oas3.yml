@@ -16,8 +16,14 @@ paths:
                 type: object
                 properties:
                   code:
+                    minimum: 200
+                    maximum: 200
+                    example: 200
                     type: integer
                   message:
+                    example: success
                     type: string
                   data:
-                    type: null
+                    type: string
+                    nullable: true
+                    example: null
