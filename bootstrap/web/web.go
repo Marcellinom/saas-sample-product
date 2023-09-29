@@ -80,6 +80,13 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(middleware.StartSession())
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
+	g.engine.GET("/csrf-cookie", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data":    nil,
+		})
+	})
 
 	HookBuildRouter.Dispatch(g.engine)
 	return g.engine

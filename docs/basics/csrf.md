@@ -22,7 +22,7 @@ Jika web tersebut otomatis submit form pada saat laman dimuat, pengguna hanya pe
 
 ## Mencegah CSRF
 
-Base project ini otomatis melakukan generate CSRF token untuk setiap session yang ada. Token ini digunakan untuk melakukan verifikasi. Token dapat diakses oleh front-end dengan mengambil nilai cookie `CSRF-TOKEN` yang akan diberikan oleh back-end untuk setiap request. Oleh karena itu, sebelum pengguna melakukan log in, front-end perlu memanggil route `/auth/csrf-cookie`. Route tersebut hanya berfungsi untuk memberikan nilai cookie tersebut. Setelah itu, untuk setiap request dari front-end dengan method selain dari yang disebutkan di atas perlu memberikan nilai CSRF token tersebut melalui header `X-CSRF-TOKEN`.
+Base project ini otomatis melakukan generate CSRF token untuk setiap session yang ada. Token ini digunakan untuk melakukan verifikasi. Token dapat diakses oleh front-end dengan mengambil nilai cookie `CSRF-TOKEN` yang akan diberikan oleh back-end untuk setiap request. Oleh karena itu, sebelum pengguna melakukan log in, front-end perlu memanggil route `/csrf-cookie`. Route tersebut hanya berfungsi untuk memberikan nilai cookie tersebut. Setelah itu, untuk setiap request dari front-end dengan method selain dari yang disebutkan di atas perlu memberikan nilai CSRF token tersebut melalui header `X-CSRF-TOKEN`.
 
 ```js
 function getCookie(key) {

@@ -4,9 +4,9 @@ info:
   title: Base Project
   description: Dokumentasi untuk API Base Project
 paths:
-  /auth/csrf-cookie:
+  /csrf-cookie:
     get:
-      description: Dummy route to set CSRF cookie in browser
+      summary: Rute dummy untuk set CSRF-TOKEN cookie
       responses:
         '200':
           description: Successful response
