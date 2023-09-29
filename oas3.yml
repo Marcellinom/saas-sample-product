@@ -30,6 +30,11 @@ paths:
                     type: string
                     nullable: true
                     example: null
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: CSRF-TOKEN=abcde12345; Path=/
 
   /auth/login:
     post:
