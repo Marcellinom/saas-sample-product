@@ -1,8 +1,8 @@
 package auth
 
 import (
-	_ "its.ac.id/base-go/modules/auth/internal/config"
-	_ "its.ac.id/base-go/modules/auth/internal/routes"
+	_ "its.ac.id/base-go/modules/auth/internal/app/config"
+	_ "its.ac.id/base-go/modules/auth/internal/app/routes"
 )
 
 func init() {

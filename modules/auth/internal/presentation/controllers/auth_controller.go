@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
-	"its.ac.id/base-go/modules/auth/internal/config"
+	"its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 	"its.ac.id/base-go/pkg/oidc"
