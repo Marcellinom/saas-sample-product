@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/mikestefanello/hooks"
+	"github.com/stoewer/go-strcase"
 	"its.ac.id/base-go/script/internal/app"
 )
 
@@ -86,11 +87,16 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 		return err
 	}
 
+	if err := createConfigFile(path, basePkgPath, name); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func createModuleFolders(path string, tsPattern bool) error {
 	var moduleFolders = []string{
+		"internal/app/config",
 		"internal/app/controllers",
 		"internal/app/commands",
 		"internal/app/listeners",
@@ -181,7 +187,7 @@ func createListenersFile(path string, basePkgPath string, name string) error {
 import (
 	"github.com/mikestefanello/hooks"
 	"%s/pkg/app/common"
-	"%s/services/event"
+	"%s/bootstrap/event"
 )
 
 func registerListeners(e *common.Event) {
@@ -201,6 +207,45 @@ func init() {
 	return nil
 }
 
+func createConfigFile(path string, basePkgPath string, name string) error {
+	moduleConfigFile, err := os.Create(fmt.Sprintf("%s/internal/app/config/config.go", path))
+	if err != nil {
+		return err
+	}
+	pascalCased := strcase.UpperCamelCase(name)
+	fmt.Fprintf(
+		moduleConfigFile,
+		`package config
+
+import (
+	"github.com/samber/do"
+)
+
+type %sConfig interface {
+}
+
+type %sConfigImpl struct {
+}
+
+func NewConfig(i *do.Injector) (%sConfig, error) {
+
+	return %sConfigImpl{}, nil
+}
+
+func init() {
+	do.Provide[%sConfig](do.DefaultInjector, NewConfig)
+}
+		`,
+		pascalCased,
+		pascalCased,
+		pascalCased,
+		pascalCased,
+		pascalCased,
+	)
+	moduleConfigFile.Close()
+	return nil
+}
+
 func createModuleInitFile(path string, name string, basePkgPath string) error {
 	moduleInitFile, err := os.Create(fmt.Sprintf("%s/%s.go", path, name))
 	if err != nil {
@@ -212,6 +257,7 @@ func createModuleInitFile(path string, name string, basePkgPath string) error {
 		
 
 import (
+	_ "%s/modules/%s/internal/app/config"
 	_ "%s/modules/%s/internal/app/listeners"
 	_ "%s/modules/%s/internal/app/routes"
 )
@@ -220,6 +266,8 @@ func init() {
 
 }
 		`,
+		name,
+		basePkgPath,
 		name,
 		basePkgPath,
 		name,

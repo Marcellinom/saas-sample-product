@@ -31,16 +31,6 @@ type HTTPConfig struct {
 	Secure bool `env:"HTTP_SECURE,default=false"`
 }
 
-type OidcConfig struct {
-	Provider              string   `env:"OIDC_PROVIDER,required"`
-	ClientID              string   `env:"OIDC_CLIENT_ID,required"`
-	ClientSecret          string   `env:"OIDC_CLIENT_SECRET,required"`
-	RedirectURL           string   `env:"OIDC_REDIRECT_URL,required"`
-	Scopes                []string `env:"OIDC_SCOPES,default=openid,email,profile,groups"`
-	EndSessionEndpoint    string   `env:"OIDC_END_SESSION_ENDPOINT"`
-	PostLogoutRedirectURI string   `env:"OIDC_POST_LOGOUT_REDIRECT_URI"`
-}
-
 type SessionConfig struct {
 	Lifetime   int    `env:"SESSION_LIFETIME,default=7200"`
 	CookieName string `env:"SESSION_NAME,default=base-go"`
@@ -57,7 +47,6 @@ type Config interface {
 	App() AppConfig
 	Cors() CorsConfig
 	HTTP() HTTPConfig
-	Oidc() OidcConfig
 	Session() SessionConfig
 }
 
@@ -65,7 +54,6 @@ type ConfigImpl struct {
 	app     AppConfig
 	cors    CorsConfig
 	http    HTTPConfig
-	oidc    OidcConfig
 	session SessionConfig
 }
 
@@ -79,10 +67,6 @@ func (c ConfigImpl) Cors() CorsConfig {
 
 func (c ConfigImpl) HTTP() HTTPConfig {
 	return c.http
-}
-
-func (c ConfigImpl) Oidc() OidcConfig {
-	return c.oidc
 }
 
 func (c ConfigImpl) Session() SessionConfig {
@@ -108,9 +92,6 @@ func NewConfig(i *do.Injector) (Config, error) {
 		return nil, err
 	}
 
-	var oidc OidcConfig
-	err = envdecode.StrictDecode(&oidc)
-
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +106,7 @@ func NewConfig(i *do.Injector) (Config, error) {
 		session.CookieName = name
 	}
 
-	return &ConfigImpl{app, cors, http, oidc, session}, err
+	return &ConfigImpl{app, cors, http, session}, err
 }
 
 func init() {

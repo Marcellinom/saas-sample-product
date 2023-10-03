@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
-	"its.ac.id/base-go/bootstrap/config"
+	"its.ac.id/base-go/modules/auth/internal/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 	"its.ac.id/base-go/pkg/oidc"
@@ -14,12 +14,12 @@ import (
 
 type AuthController struct {
 	i   *do.Injector
-	cfg config.Config
+	cfg config.AuthConfig
 }
 
 func NewAuthController() *AuthController {
 	i := do.DefaultInjector
-	cfg := do.MustInvoke[config.Config](i)
+	cfg := do.MustInvoke[config.AuthConfig](i)
 
 	return &AuthController{i, cfg}
 }
@@ -34,7 +34,8 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		})
 		return
 	}
-	endSessionEndpoint, err := op.RPInitiatedLogout()
+	cfg := c.cfg.Oidc()
+	endSessionEndpoint, err := op.RPInitiatedLogout(cfg.EndSessionEndpoint, cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,

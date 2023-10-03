@@ -7,9 +7,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/google/uuid"
-	"github.com/samber/do"
 	"golang.org/x/oauth2"
-	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/session"
 )
 
@@ -129,12 +127,11 @@ func (c *Client) UserInfo(clientID string, clientSecret string, redirectURL stri
 	return userInfo, nil
 }
 
-func (c *Client) RPInitiatedLogout() (string, error) {
-	cfg := do.MustInvoke[config.Config](do.DefaultInjector).Oidc()
-	if cfg.EndSessionEndpoint == "" {
+func (c *Client) RPInitiatedLogout(endSessionEndpoint string, postLogoutRedirectURI string) (string, error) {
+	if endSessionEndpoint == "" {
 		return "", ErrNoEndSessionEndpoint
 	}
-	req, err := http.NewRequest("GET", cfg.EndSessionEndpoint, nil)
+	req, err := http.NewRequest("GET", endSessionEndpoint, nil)
 	if err != nil {
 		return "", err
 	}
@@ -143,8 +140,8 @@ func (c *Client) RPInitiatedLogout() (string, error) {
 	if idTokenHint, ok := idTokenHintItf.(string); exists && ok && idTokenHint != "" {
 		q.Add("id_token_hint", idTokenHint)
 	}
-	if cfg.PostLogoutRedirectURI != "" {
-		q.Add("post_logout_redirect_uri", cfg.PostLogoutRedirectURI)
+	if postLogoutRedirectURI != "" {
+		q.Add("post_logout_redirect_uri", postLogoutRedirectURI)
 	}
 
 	req.URL.RawQuery = q.Encode()
