@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"its.ac.id/akademik/pkg/app/common/errors"
+	"its.ac.id/base-go/pkg/app/common/errors"
 )
 
 var UnauthorizedResponse = gin.H{
