@@ -1,11 +1,11 @@
 package oidc
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"its.ac.id/base-go/pkg/session"
@@ -34,11 +34,11 @@ type Client struct {
 	p           *oidc.Provider
 	sess        *session.Data
 	qp          QueryParamsProvider
-	ctx         context.Context
+	ctx         *gin.Context
 	verifyState bool
 }
 
-func NewClient(ctx context.Context, pUrl string, sess *session.Data, qp QueryParamsProvider) (*Client, error) {
+func NewClient(ctx *gin.Context, pUrl string, sess *session.Data, qp QueryParamsProvider) (*Client, error) {
 	provider, err := oidc.NewProvider(ctx, pUrl)
 	if err != nil {
 		return nil, err
