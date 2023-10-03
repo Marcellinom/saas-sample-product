@@ -3,11 +3,15 @@ package web
 import (
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
 	"gorm.io/driver/sqlite"
@@ -54,6 +58,17 @@ func NewGinServer(i *do.Injector) (Server, error) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+
 	s := &GinServer{r, cfg}
 	s.buildRouter()
 
