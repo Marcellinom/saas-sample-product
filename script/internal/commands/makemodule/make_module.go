@@ -97,7 +97,6 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 func createModuleFolders(path string, tsPattern bool) error {
 	var moduleFolders = []string{
 		"internal/app/config",
-		"internal/app/controllers",
 		"internal/app/commands",
 		"internal/app/listeners",
 		"internal/app/queries",
@@ -108,6 +107,8 @@ func createModuleFolders(path string, tsPattern bool) error {
 
 		"internal/domain/services",
 		"internal/domain/repositories",
+
+		"internal/presentation/controllers",
 	}
 
 	if !tsPattern {
