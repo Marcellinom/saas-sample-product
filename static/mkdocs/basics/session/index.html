@@ -774,7 +774,7 @@
 <h2 id="pengenalan">Pengenalan</h2>
 <p>Karena aplikasi berbasis HTTP tidak memiliki state, session menyediakan cara untuk menyimpan informasi tentang pengguna di beberapa request. Informasi pengguna tersebut biasanya ditempatkan di penyimpanan/backend persisten yang dapat diakses dari request berikutnya.</p>
 <h2 id="konfigurasi">Konfigurasi</h2>
-<p>Konfigurasi dari session aplikasi disimpan pada berkas <code>bootstrap/web/web.go</code>. Secara bawaan, base project ini dikonfigurasi menggunakan Firestore sebagai adapter dari session. Adapter tersebut menentukan dimana data dari session akan disimpan untuk setiap request. Berikut adalah adapter bawaan yang ada di dalam base project ini:</p>
+<p>Konfigurasi dari session aplikasi disimpan pada berkas <code>bootstrap/web/web.go</code>. Secara bawaan, base project ini dikonfigurasi menggunakan SQLite sebagai adapter dari session. Adapter tersebut menentukan dimana data dari session akan disimpan untuk setiap request. Berikut adalah adapter bawaan yang ada di dalam base project ini:</p>
 <ul>
 <li>Firestore - session disimpan di dalam database <a href="https://cloud.google.com/firestore">Firestore</a></li>
 <li>GORM - session disimpan di dalam database yang didukung oleh <a href="https://gorm.io/">GORM</a></li>

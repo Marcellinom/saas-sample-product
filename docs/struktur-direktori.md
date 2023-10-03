@@ -34,6 +34,14 @@ Direktori ini berisikan kode sumber untuk automated script yang membantu dalam p
 
 Direktori `modules` berisi modul-modul yang ada dalam aplikasi. Setiap modul merupakan implementasi dari sebuah Bounded Context pada Domain-Driven Design. Direktori ini harus berisi beberapa folder yang menyatakan nama dari modul. Struktur setiap modul disesuaikan dengan Onion/Hexagonal/Clean Architecture dengan Command Query Responsibility Segregation (CQRS) Pattern yang terdiri dari direktori sebagai berikut:
 
+### Direktori `internal/app/config`
+
+Direktori ini berisikan konfigurasi dari setiap modul. Alur yang dikerjakan dari layer ini adalah sebagai berikut:
+
+1. Mengambil data environment variable
+2. Melakukan mapping ke struct config
+3. Inject config agar dapat dipakai di seluruh aplikasi
+
 ### Direktori `internal/app/controllers`
 
 Direktori ini berisikan handler dari request yang masuk ke dalam aplikasi. Alur yang dikerjakan dari layer ini adalah sebagai berikut:
