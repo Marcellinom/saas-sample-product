@@ -79,8 +79,9 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 // User godoc
 // @Summary		get user info
 // @Description	get user information
-// @Router		/user [get]
+// @Router		/user/:id [get]
 // @Tags		auth
+// @Param		id path string false "id"
 // @Param		username query string true "username"
 // @Param		password query string true "password"
 // @Produce		json

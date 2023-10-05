@@ -75,10 +75,14 @@ paths:
       summary: login user
       tags:
       - auth
-  /user:
+  /user/:id:
     get:
       description: get user information
       parameters:
+      - description: id
+        in: path
+        name: id
+        type: string
       - description: username
         in: query
         name: username

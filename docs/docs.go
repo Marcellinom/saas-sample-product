@@ -77,7 +77,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user": {
+        "/user/:id": {
             "get": {
                 "description": "get user information",
                 "produces": [
@@ -88,6 +88,12 @@ const docTemplate = `{
                 ],
                 "summary": "get user info",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path"
+                    },
                     {
                         "type": "string",
                         "description": "username",
