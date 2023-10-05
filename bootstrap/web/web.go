@@ -2,7 +2,6 @@ package web
 
 import (
 	"net/http"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -14,13 +13,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app"
 	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/session"
-	"its.ac.id/base-go/pkg/session/adapters"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
 
@@ -31,14 +27,14 @@ type Server interface {
 func init() {
 	app.HookBoot.Listen(func(e hooks.Event[*do.Injector]) {
 		do.Provide[session.Storage](e.Msg, func(i *do.Injector) (session.Storage, error) {
-			// return setupFirestoreSessionAdapter(i)
+			return setupFirestoreSessionAdapter(i)
 
 			// Contoh penggunaan adapter GORM dengan SQLite
-			db, err := gorm.Open(sqlite.Open(os.Getenv("SESSION_SQLITE_DB")), &gorm.Config{})
-			if err != nil {
-				panic("failed to connect database")
-			}
-			return adapters.NewGorm(db), nil
+			// db, err := gorm.Open(sqlite.Open(os.Getenv("SESSION_SQLITE_DB")), &gorm.Config{})
+			// if err != nil {
+			// 	panic("failed to connect database")
+			// }
+			// return adapters.NewGorm(db), nil
 		})
 		do.Provide[Server](e.Msg, NewGinServer)
 	})
