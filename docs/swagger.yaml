@@ -1,0 +1,122 @@
+definitions:
+  responses.GeneralResponse:
+    properties:
+      code:
+        example: 123
+        type: integer
+      data: {}
+      message:
+        example: update_success
+        type: string
+    type: object
+  responses.Role:
+    properties:
+      is_default:
+        type: boolean
+      name:
+        example: Yoga
+        type: string
+      permissions:
+        example:
+        - '[]string{bahagia'
+        - menangis}
+        items:
+          type: string
+        type: array
+    type: object
+  responses.User:
+    properties:
+      active_role:
+        example: super admin
+        type: string
+      id:
+        example: UUID
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/responses.Role'
+        type: array
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: call oidc login function
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  type: string
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+              type: object
+      summary: login user
+      tags:
+      - auth
+  /user:
+    get:
+      description: get user information
+      parameters:
+      - description: username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: query
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  $ref: '#/definitions/responses.User'
+                message:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+              type: object
+      summary: get user info
+      tags:
+      - auth
+swagger: "2.0"

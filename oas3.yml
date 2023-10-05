@@ -63,26 +63,25 @@ paths:
                     type: string
                     description: Link untuk login ke provider OpenID Connect
                     example: https://dev-my.its.ac.id/authorize?client_id=062DBF94-A085-49CA-916E-1A55CFE39AEC&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fauth%2Fcallback&response_type=code&scope=openid+profile&state=f37fecbc-30ff-488e-859e-0ec42596d2f3
-
-      '500':
-        description: Terjadi kesalahan saat menghubungi provider OpenID Connect
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                code:
-                  minimum: 500
-                  maximum: 500
-                  example: 500
-                  type: integer
-                message:
-                  example: login_failed
-                  type: string
-                data:
-                  type: string
-                  nullable: true
-                  example: null
+        '500':
+          description: Terjadi kesalahan saat menghubungi provider OpenID Connect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    minimum: 500
+                    maximum: 500
+                    example: 500
+                    type: integer
+                  message:
+                    example: login_failed
+                    type: string
+                  data:
+                    type: string
+                    nullable: true
+                    example: null
 
   /auth/logout:
     delete:
