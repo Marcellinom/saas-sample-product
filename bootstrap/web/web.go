@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -13,10 +14,14 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
+	"gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlserver"
+	"gorm.io/gorm"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/app"
 	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/session"
+	"its.ac.id/base-go/pkg/session/adapters"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
 
@@ -27,14 +32,44 @@ type Server interface {
 func init() {
 	app.HookBoot.Listen(func(e hooks.Event[*do.Injector]) {
 		do.Provide[session.Storage](e.Msg, func(i *do.Injector) (session.Storage, error) {
-			return setupFirestoreSessionAdapter(i)
+			cfg := do.MustInvoke[config.Config](i).Session()
 
-			// Contoh penggunaan adapter GORM dengan SQLite
-			// db, err := gorm.Open(sqlite.Open(os.Getenv("SESSION_SQLITE_DB")), &gorm.Config{})
-			// if err != nil {
-			// 	panic("failed to connect database")
-			// }
-			// return adapters.NewGorm(db), nil
+			switch cfg.Driver {
+			case "firestore":
+				return setupFirestoreSessionAdapter(i)
+			case "sqlite":
+				// Contoh penggunaan adapter GORM dengan SQLite
+				path := cfg.SQLiteDB
+				if path == "" {
+					panic("invalid SQLite database path for session")
+				}
+
+				db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+				if err != nil {
+					panic("failed to connect to SQLite database for session")
+				}
+				return adapters.NewGorm(db), nil
+			case "sqlserver":
+				// Contoh penggunaan adapter GORM dengan SQL Server
+				username := cfg.SQLServerUsername
+				password := cfg.SQLServerPassword
+				host := cfg.SQLServerHost
+				port := cfg.SQLServerPort
+				database := cfg.SQLServerDatabase
+
+				if username == "" || password == "" || host == "" || port == "" || database == "" {
+					panic("invalid SQL Server configuration for session")
+				}
+
+				dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", username, password, host, port, database)
+				db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
+				if err != nil {
+					panic("failed to connect SQL Server database for session")
+				}
+				return adapters.NewGorm(db), nil
+			}
+
+			panic("unknown session driver")
 		})
 		do.Provide[Server](e.Msg, NewGinServer)
 	})

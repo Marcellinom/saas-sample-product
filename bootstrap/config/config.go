@@ -1,9 +1,6 @@
 package config
 
 import (
-	"strings"
-
-	"github.com/gosimple/slug"
 	"github.com/joeshaw/envdecode"
 	"github.com/samber/do"
 )
@@ -32,18 +29,6 @@ type HTTPConfig struct {
 	Secure bool `env:"HTTP_SECURE,default=false"`
 }
 
-type SessionConfig struct {
-	Lifetime   int    `env:"SESSION_LIFETIME,default=7200"`
-	CookieName string `env:"SESSION_NAME,default=base-go"`
-	CookiePath string `env:"SESSION_PATH,default=/"`
-	Domain     string `env:"SESSION_DOMAIN,default=localhost"`
-	Secure     bool   `env:"SESSION_SECURE_COOKIE,default=false"`
-
-	// Firestore session adapter
-	FirestoreProjectID  string `env:"SESSION_FIRESTORE_PROJECT_ID"`
-	FirestoreCollection string `env:"SESSION_FIRESTORE_COLLECTION,default=sessions"`
-}
-
 type Config interface {
 	App() AppConfig
 	Cors() CorsConfig
@@ -70,10 +55,6 @@ func (c ConfigImpl) HTTP() HTTPConfig {
 	return c.http
 }
 
-func (c ConfigImpl) Session() SessionConfig {
-	return c.session
-}
-
 func NewConfig(i *do.Injector) (Config, error) {
 	var app AppConfig
 	err := envdecode.StrictDecode(&app)
@@ -96,16 +77,8 @@ func NewConfig(i *do.Injector) (Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	var session SessionConfig
-	err = envdecode.StrictDecode(&session)
-	if err != nil {
-		return nil, err
-	}
-	if session.CookieName == "" || session.CookieName == "base-go" {
-		name := slug.Make(app.Name)
-		name = strings.ReplaceAll(name, "-", "_") + "_session"
-		session.CookieName = name
-	}
+
+	session := setupSessionConfig(app.Name)
 
 	if app.FrontendURL == "null" {
 		app.FrontendURL = ""
