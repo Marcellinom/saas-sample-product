@@ -136,6 +136,9 @@ func createRoutesFile(path string, basePkgPath string, name string) error {
 	if err != nil {
 		return err
 	}
+	pascalcased := strcase.UpperCamelCase(name)
+
+	dsn := "fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\", dbCfg.SQLServerUsername, dbCfg.SQLServerPassword, dbCfg.SQLServerHost, dbCfg.SQLServerPort, dbCfg.SQLServerDatabase)"
 	fmt.Fprintf(
 		moduleRoutesFile,
 		`package routes
@@ -145,6 +148,7 @@ import (
 	"github.com/mikestefanello/hooks"
 	"github.com/samber/do"
 	"%s/bootstrap/web"
+	"%s/modules/%s/internal/app/config"
 	"%s/pkg/app"
 )
 
@@ -163,14 +167,32 @@ func init() {
 	})
 
 	app.HookBoot.Listen(func(event hooks.Event[*do.Injector]) {
-		// Register services below
+		i := event.Msg
 
+		cfg := do.MustInvoke[config.%sConfig](i)
+		dbCfg := cfg.Database()
+
+		// Uncomment this line if you want to use Firestore
+		// client, err := firestore.NewClient(context.Background(), dbCfg.FirestoreProjectID)
+
+		// Uncomment this line if you want to use SQL Server
+		// dsn := %s
+		// db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
+		// if err != nil {
+		// 	panic("failed to connect SQL Server database for session")
+		// }
+
+		// Register services below
 	})
 }
 		`,
 		basePkgPath,
 		basePkgPath,
 		strings.ReplaceAll(name, "_", "-"),
+		basePkgPath,
+		strings.ReplaceAll(name, "_", "-"),
+		pascalcased,
+		dsn,
 	)
 	moduleRoutesFile.Close()
 	return nil
@@ -213,6 +235,7 @@ func createConfigFile(path string, basePkgPath string, name string) error {
 	if err != nil {
 		return err
 	}
+	defer moduleConfigFile.Close()
 	pascalCased := strcase.UpperCamelCase(name)
 	fmt.Fprintf(
 		moduleConfigFile,
@@ -223,14 +246,17 @@ import (
 )
 
 type %sConfig interface {
+	Database() DatabaseConfig
 }
 
 type %sConfigImpl struct {
+	db DatabaseConfig
 }
 
 func NewConfig(i *do.Injector) (%sConfig, error) {
+	db := setupDatabaseConfig()
 
-	return %sConfigImpl{}, nil
+	return %sConfigImpl{db}, nil
 }
 
 func init() {
@@ -243,7 +269,61 @@ func init() {
 		pascalCased,
 		pascalCased,
 	)
-	moduleConfigFile.Close()
+
+	moduleDbConfigFile, err := os.Create(fmt.Sprintf("%s/internal/app/config/database.go", path))
+	if err != nil {
+		return err
+	}
+	defer moduleDbConfigFile.Close()
+
+	uppercased := strings.ToUpper(name)
+	fmt.Fprintf(moduleDbConfigFile,
+		"package config\n"+
+			"\n"+
+			"import (\n"+
+			"	\"github.com/joeshaw/envdecode\"\n"+
+			")\n"+
+			"\n"+
+			"type DatabaseConfig struct {\n"+
+			"	// Firestore session adapter\n"+
+			"	FirestoreProjectID  string `env:\"%s_FIRESTORE_PROJECT_ID\"`\n"+
+			"	FirestoreCollection string `env:\"%s_FIRESTORE_COLLECTION\"`\n"+
+			"\n"+
+			"	// SQLite session adapter (GORM)\n"+
+			"	SQLiteDB string `env:\"%s_SQLITE_DB\"`\n"+
+			"\n"+
+			"	// SQL Server session adapter (GORM)\n"+
+			"	SQLServerHost     string `env:\"%s_SQLSERVER_HOST\"`\n"+
+			"	SQLServerPort     string `env:\"%s_SQLSERVER_PORT\"`\n"+
+			"	SQLServerDatabase string `env:\"%s_SQLSERVER_DATABASE\"`\n"+
+			"	SQLServerUsername string `env:\"%s_SQLSERVER_USERNAME\"`\n"+
+			"	SQLServerPassword string `env:\"%s_SQLSERVER_PASSWORD\"`\n"+
+			"}\n"+
+			"\n"+
+			"func (c %sConfigImpl) Database() DatabaseConfig {\n"+
+			"	return c.db\n"+
+			"}\n"+
+			"\n"+
+			"func setupDatabaseConfig() DatabaseConfig {\n"+
+			"	var db DatabaseConfig\n"+
+			"	err := envdecode.StrictDecode(&db)\n"+
+			"	if err != nil {\n"+
+			"		panic(err)\n"+
+			"	}\n"+
+			"\n"+
+			"	return db\n"+
+			"}\n",
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		pascalCased,
+	)
+
 	return nil
 }
 
