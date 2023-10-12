@@ -9,11 +9,11 @@ import (
 func User(c *gin.Context) *contracts.User {
 	uInterface, exist := c.Get(utils.UserKey)
 	if !exist {
-		return nil
+		panic("cannot get user info, forgot to add auth middleware?")
 	}
 	u, ok := uInterface.(*contracts.User)
 	if !ok {
-		return nil
+		panic("cannot get user info, forgot to add auth middleware?")
 	}
 
 	return u
