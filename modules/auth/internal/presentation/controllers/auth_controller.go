@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	appConfig "its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
@@ -178,6 +179,13 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	session.AddCookieToResponse(ctx, sess.Id())
+
+	cfg := do.MustInvoke[appConfig.Config](do.DefaultInjector)
+	if cfg.App().FrontendURL != "" {
+		ctx.Redirect(http.StatusFound, cfg.App().FrontendURL)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
 		"message": "login_success",

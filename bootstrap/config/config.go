@@ -9,11 +9,12 @@ import (
 )
 
 type AppConfig struct {
-	Name  string `env:"APP_NAME,default=dptsi-base-go"`
-	Env   string `env:"APP_ENV,default=production"`
-	Key   string `env:"APP_KEY"`
-	Debug bool   `env:"APP_DEBUG,default=false"`
-	URL   string `env:"APP_URL,default=http://localhost"`
+	Name        string `env:"APP_NAME,default=dptsi-base-go"`
+	Env         string `env:"APP_ENV,default=production"`
+	Key         string `env:"APP_KEY"`
+	Debug       bool   `env:"APP_DEBUG,default=false"`
+	URL         string `env:"APP_URL,default=http://localhost"`
+	FrontendURL string `env:"APP_FRONTEND_URL,default=null"`
 }
 
 type CorsConfig struct {
@@ -104,6 +105,10 @@ func NewConfig(i *do.Injector) (Config, error) {
 		name := slug.Make(app.Name)
 		name = strings.ReplaceAll(name, "-", "_") + "_session"
 		session.CookieName = name
+	}
+
+	if app.FrontendURL == "null" {
+		app.FrontendURL = ""
 	}
 
 	return &ConfigImpl{app, cors, http, session}, err
