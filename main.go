@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+	"github.com/samber/do"
 
 	// Services
 	"its.ac.id/base-go/bootstrap/config"
@@ -16,9 +17,6 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Error loading .env file")
 	}
-
-	// i := do.DefaultInjector
-	// providedServices := i.ListProvidedServices()
 
 	cfg, err := config.SetupAppConfig()
 	if err != nil {
@@ -33,7 +31,9 @@ func main() {
 	eventHook := event.SetupEventHook()
 	modules.RegisterModules(cfg, server.Engine(), eventHook)
 
-	// log.Printf("registered %d dependencies: %v", len(providedServices), providedServices)
+	i := do.DefaultInjector
+	providedServices := i.ListProvidedServices()
+	log.Printf("registered %d dependencies: %v", len(providedServices), providedServices)
 
 	server.Start()
 }
