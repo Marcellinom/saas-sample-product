@@ -7,10 +7,13 @@ import (
 )
 
 type Route struct {
-	g              *gin.Engine
+	g *gin.Engine
+
+	// Tambahkan controller di sini
 	authController *controllers.AuthController
 }
 
+// Tambahkan controller di sini
 func NewRoutes(g *gin.Engine, authController *controllers.AuthController) *Route {
 	return &Route{
 		g:              g,
