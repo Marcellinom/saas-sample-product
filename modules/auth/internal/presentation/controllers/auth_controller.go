@@ -4,9 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
-	appConfig "its.ac.id/base-go/bootstrap/config"
-	"its.ac.id/base-go/modules/auth/internal/app/config"
+	"its.ac.id/base-go/bootstrap/config"
+	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 	"its.ac.id/base-go/pkg/oidc"
@@ -14,15 +13,12 @@ import (
 )
 
 type AuthController struct {
-	i   *do.Injector
-	cfg config.AuthConfig
+	cfg       config.Config
+	moduleCfg moduleConfig.AuthConfig
 }
 
-func NewAuthController() *AuthController {
-	i := do.DefaultInjector
-	cfg := do.MustInvoke[config.AuthConfig](i)
-
-	return &AuthController{i, cfg}
+func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig) *AuthController {
+	return &AuthController{appCfg, cfg}
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
@@ -35,7 +31,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		})
 		return
 	}
-	cfg := c.cfg.Oidc()
+	cfg := c.moduleCfg.Oidc()
 	endSessionEndpoint, err := op.RPInitiatedLogout(cfg.EndSessionEndpoint, cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -67,7 +63,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 
-	session.AddCookieToResponse(ctx, sess.Id())
+	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
@@ -104,7 +100,7 @@ func (c *AuthController) User(ctx *gin.Context) {
 }
 
 func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
-	cfg := c.cfg.Oidc()
+	cfg := c.moduleCfg.Oidc()
 	sess := session.Default(ctx)
 	op, err := oidc.NewClient(ctx, cfg.Provider, sess, ctx)
 	if err != nil {
@@ -123,7 +119,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			"data":    nil,
 		})
 	}
-	cfg := c.cfg.Oidc()
+	cfg := c.moduleCfg.Oidc()
 	url := op.RedirectURL(cfg.ClientID, cfg.ClientSecret, cfg.RedirectURL, cfg.Scopes)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
@@ -143,7 +139,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	userInfo, err := op.UserInfo(c.cfg.Oidc().ClientID, c.cfg.Oidc().ClientSecret, c.cfg.Oidc().RedirectURL, c.cfg.Oidc().Scopes)
+	userInfo, err := op.UserInfo(c.moduleCfg.Oidc().ClientID, c.moduleCfg.Oidc().ClientSecret, c.moduleCfg.Oidc().RedirectURL, c.moduleCfg.Oidc().Scopes)
 	if err != nil {
 		status := http.StatusBadRequest
 		if err.Error() == oidc.ErrorRetrieveUserInfo {
@@ -178,11 +174,11 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	session.AddCookieToResponse(ctx, sess.Id())
+	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
 
-	cfg := do.MustInvoke[appConfig.Config](do.DefaultInjector)
-	if cfg.App().FrontendURL != "" {
-		ctx.Redirect(http.StatusFound, cfg.App().FrontendURL)
+	frontendUrl := c.cfg.App().FrontendURL
+	if frontendUrl != "" {
+		ctx.Redirect(http.StatusFound, frontendUrl)
 		return
 	}
 

@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -12,76 +11,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/mikestefanello/hooks"
-	"github.com/samber/do"
-	"gorm.io/driver/sqlite"
-	"gorm.io/driver/sqlserver"
-	"gorm.io/gorm"
 	"its.ac.id/base-go/bootstrap/config"
-	"its.ac.id/base-go/pkg/app"
 	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/session"
-	"its.ac.id/base-go/pkg/session/adapters"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
 
 type Server interface {
 	Start()
+	Engine() *gin.Engine
 }
 
-func init() {
-	app.HookBoot.Listen(func(e hooks.Event[*do.Injector]) {
-		do.Provide[session.Storage](e.Msg, func(i *do.Injector) (session.Storage, error) {
-			cfg := do.MustInvoke[config.Config](i).Session()
-
-			switch cfg.Driver {
-			case "firestore":
-				return setupFirestoreSessionAdapter(i)
-			case "sqlite":
-				// Contoh penggunaan adapter GORM dengan SQLite
-				path := cfg.SQLiteDB
-				if path == "" {
-					panic("invalid SQLite database path for session")
-				}
-
-				db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-				if err != nil {
-					panic("failed to connect to SQLite database for session")
-				}
-				return adapters.NewGorm(db), nil
-			case "sqlserver":
-				// Contoh penggunaan adapter GORM dengan SQL Server
-				username := cfg.SQLServerUsername
-				password := cfg.SQLServerPassword
-				host := cfg.SQLServerHost
-				port := cfg.SQLServerPort
-				database := cfg.SQLServerDatabase
-
-				if username == "" || password == "" || host == "" || port == "" || database == "" {
-					panic("invalid SQL Server configuration for session")
-				}
-
-				dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", username, password, host, port, database)
-				db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
-				if err != nil {
-					panic("failed to connect SQL Server database for session")
-				}
-				return adapters.NewGorm(db), nil
-			}
-
-			panic("unknown session driver")
-		})
-		do.Provide[Server](e.Msg, NewGinServer)
-	})
+func SetupServer(cfg config.Config) (Server, error) {
+	storage, err := setupSessionStorage(cfg.Session())
+	if err != nil {
+		return nil, err
+	}
+	return newGinServer(cfg, storage)
 }
 
 type GinServer struct {
-	engine *gin.Engine
-	cfg    config.Config
+	engine         *gin.Engine
+	cfg            config.Config
+	sessionStorage session.Storage
 }
 
-func NewGinServer(i *do.Injector) (Server, error) {
-	cfg := do.MustInvoke[config.Config](i)
+func newGinServer(cfg config.Config, sessionStorage session.Storage) (Server, error) {
 	appCfg := cfg.App()
 	if appCfg.Debug {
 		gin.SetMode(gin.DebugMode)
@@ -100,7 +55,7 @@ func NewGinServer(i *do.Injector) (Server, error) {
 		})
 	}
 
-	s := &GinServer{r, cfg}
+	s := &GinServer{r, cfg, sessionStorage}
 	s.buildRouter()
 
 	return s, nil
@@ -110,8 +65,9 @@ func (g *GinServer) Start() {
 	g.engine.Run(":" + strconv.Itoa(g.cfg.HTTP().Port))
 }
 
-// HookBuildRouter allows modules the ability to build on the web router
-var HookBuildRouter = hooks.NewHook[*gin.Engine]("router.build")
+func (g *GinServer) Engine() *gin.Engine {
+	return g.engine
+}
 
 func (g *GinServer) buildRouter() *gin.Engine {
 	// Custom Handlers
@@ -138,7 +94,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.StaticFile("/oas3.yml", "./oas3.yml")
 	g.engine.Static("/doc/api", "./static/swagger-ui")
 	g.engine.Static("/doc/project", "./static/mkdocs")
-	g.engine.Use(middleware.StartSession())
+	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
 	g.engine.GET("/csrf-cookie", func(ctx *gin.Context) {
@@ -149,7 +105,6 @@ func (g *GinServer) buildRouter() *gin.Engine {
 		})
 	})
 
-	HookBuildRouter.Dispatch(g.engine)
 	return g.engine
 }
 

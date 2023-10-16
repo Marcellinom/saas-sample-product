@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/joeshaw/envdecode"
-	"github.com/samber/do"
 )
 
 type AppConfig struct {
@@ -55,7 +54,7 @@ func (c ConfigImpl) HTTP() HTTPConfig {
 	return c.http
 }
 
-func NewConfig(i *do.Injector) (Config, error) {
+func SetupAppConfig() (Config, error) {
 	var app AppConfig
 	err := envdecode.StrictDecode(&app)
 	if err != nil {
@@ -85,8 +84,4 @@ func NewConfig(i *do.Injector) (Config, error) {
 	}
 
 	return &ConfigImpl{app, cors, http, session}, err
-}
-
-func init() {
-	do.Provide[Config](do.DefaultInjector, NewConfig)
 }
