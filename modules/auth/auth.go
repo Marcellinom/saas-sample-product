@@ -7,7 +7,7 @@ import (
 	"its.ac.id/base-go/bootstrap/event"
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/modules/auth/internal/app/providers"
-	"its.ac.id/base-go/modules/auth/internal/app/routes"
+	"its.ac.id/base-go/modules/auth/internal/presentation/routes"
 )
 
 func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
@@ -18,6 +18,8 @@ func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
 		panic(err)
 	}
 
-	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook)
-	routes.RegisterRoutes(i, g)
+	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
+
+	route := do.MustInvoke[*routes.Route](i)
+	route.RegisterRoutes()
 }
