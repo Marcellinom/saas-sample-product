@@ -4,21 +4,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/pkg/session"
 )
 
-func StartSession() gin.HandlerFunc {
+func StartSession(cfg config.SessionConfig, storage session.Storage) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		storage, err := do.Invoke[session.Storage](do.DefaultInjector)
-		if err != nil {
-			panic(err)
-		}
 		if storage == nil {
 			panic("Session storage not configured. Please configure it first in bootstrap/web/web.go")
 		}
-		cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
 
 		// Initialize session data
 		var data *session.Data
@@ -40,7 +34,7 @@ func StartSession() gin.HandlerFunc {
 			}
 		}
 		if data == nil {
-			data = session.NewEmptyData(ctx, storage)
+			data = session.NewEmptyData(cfg, ctx, storage)
 			if err := data.Save(); err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 					"code":    http.StatusInternalServerError,
@@ -51,7 +45,7 @@ func StartSession() gin.HandlerFunc {
 			}
 		}
 		ctx.Set("session", data)
-		session.AddCookieToResponse(ctx, data.Id())
+		session.AddCookieToResponse(cfg, ctx, data.Id())
 		ctx.Next()
 	}
 }

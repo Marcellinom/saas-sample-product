@@ -91,6 +91,10 @@ func createSkeleton(name string, path string, tsPattern bool) error {
 		return err
 	}
 
+	if err := createDependenciesFile(path, basePkgPath, name); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -100,8 +104,8 @@ func createModuleFolders(path string, tsPattern bool) error {
 		"internal/app/commands",
 		"internal/app/listeners",
 		"internal/app/queries",
-		"internal/app/routes",
 		"internal/app/services",
+		"internal/app/providers",
 
 		"internal/infrastructures/database",
 
@@ -109,6 +113,7 @@ func createModuleFolders(path string, tsPattern bool) error {
 		"internal/domain/repositories",
 
 		"internal/presentation/controllers",
+		"internal/presentation/routes",
 	}
 
 	if !tsPattern {
@@ -132,67 +137,45 @@ func createModuleFolders(path string, tsPattern bool) error {
 }
 
 func createRoutesFile(path string, basePkgPath string, name string) error {
-	moduleRoutesFile, err := os.Create(fmt.Sprintf("%s/internal/app/routes/routes.go", path))
+	moduleRoutesFile, err := os.Create(fmt.Sprintf("%s/internal/presentation/routes/routes.go", path))
 	if err != nil {
 		return err
 	}
-	pascalcased := strcase.UpperCamelCase(name)
 
-	dsn := "fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\", dbCfg.SQLServerUsername, dbCfg.SQLServerPassword, dbCfg.SQLServerHost, dbCfg.SQLServerPort, dbCfg.SQLServerDatabase)"
 	fmt.Fprintf(
 		moduleRoutesFile,
 		`package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mikestefanello/hooks"
-	"github.com/samber/do"
-	"%s/bootstrap/web"
-	"%s/modules/%s/internal/app/config"
-	"%s/pkg/app"
 )
 
-const routePrefix = "/%s"
+type Route struct {
+	g *gin.Engine
 
-func registerRoutes(r *gin.Engine) {
-	g := r.Group(routePrefix)
-
-	// Register routes below
-
+	// Tambahkan controller di sini
+	// Contoh:
+	// authController *controllers.AuthController
 }
 
-func init() {
-	web.HookBuildRouter.Listen(func(event hooks.Event[*gin.Engine]) {
-		registerRoutes(event.Msg)
-	})
-
-	app.HookBoot.Listen(func(event hooks.Event[*do.Injector]) {
-		i := event.Msg
-
-		cfg := do.MustInvoke[config.%sConfig](i)
-		dbCfg := cfg.Database()
-
-		// Uncomment this line if you want to use Firestore
-		// client, err := firestore.NewClient(context.Background(), dbCfg.FirestoreProjectID)
-
-		// Uncomment this line if you want to use SQL Server
-		// dsn := %s
-		// db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
-		// if err != nil {
-		// 	panic("failed to connect SQL Server database for session")
-		// }
-
-		// Register services below
-	})
+// Tambahkan controller di parameter jika ingin menginject controller
+func NewRoutes(g *gin.Engine) *Route {
+	return &Route{
+		g: g,
+		// Contoh:
+		// authController: authController,
+	}
 }
-		`,
-		basePkgPath,
-		basePkgPath,
+
+func (r Route) RegisterRoutes() {
+	g := r.g.Group("/%s")
+
+	// Tambahan route di sini
+	// Contoh:
+	// g.POST("/login", r.authController.Login)
+
+}`,
 		strings.ReplaceAll(name, "_", "-"),
-		basePkgPath,
-		strings.ReplaceAll(name, "_", "-"),
-		pascalcased,
-		dsn,
 	)
 	moduleRoutesFile.Close()
 	return nil
@@ -241,10 +224,6 @@ func createConfigFile(path string, basePkgPath string, name string) error {
 		moduleConfigFile,
 		`package config
 
-import (
-	"github.com/samber/do"
-)
-
 type %sConfig interface {
 	Database() DatabaseConfig
 }
@@ -253,17 +232,11 @@ type %sConfigImpl struct {
 	db DatabaseConfig
 }
 
-func NewConfig(i *do.Injector) (%sConfig, error) {
+func SetupConfig() (%sConfig, error) {
 	db := setupDatabaseConfig()
 
 	return %sConfigImpl{db}, nil
-}
-
-func init() {
-	do.Provide[%sConfig](do.DefaultInjector, NewConfig)
-}
-		`,
-		pascalCased,
+}`,
 		pascalCased,
 		pascalCased,
 		pascalCased,
@@ -335,19 +308,33 @@ func createModuleInitFile(path string, name string, basePkgPath string) error {
 	fmt.Fprintf(
 		moduleInitFile,
 		`package %s
-		
 
 import (
-	_ "%s/modules/%s/internal/app/config"
-	_ "%s/modules/%s/internal/app/listeners"
-	_ "%s/modules/%s/internal/app/routes"
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+	"%s/bootstrap/config"
+	"%s/bootstrap/event"
+	moduleConfig "%s/modules/%s/internal/app/config"
+	"%s/modules/%s/internal/app/providers"
+	"%s/modules/%s/internal/presentation/routes"
 )
 
-func init() {
+func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
+	i := do.DefaultInjector
 
-}
-		`,
+	moduleCfg, err := moduleConfig.SetupConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
+
+	route := do.MustInvoke[*routes.Route](i)
+	route.RegisterRoutes()
+}`,
 		name,
+		basePkgPath,
+		basePkgPath,
 		basePkgPath,
 		name,
 		basePkgPath,
@@ -356,5 +343,65 @@ func init() {
 		name,
 	)
 	moduleInitFile.Close()
+	return nil
+}
+
+func createDependenciesFile(path string, basePkgPath string, name string) error {
+	depsFile, err := os.Create(fmt.Sprintf("%s/internal/app/providers/dependencies.go", path))
+	if err != nil {
+		return err
+	}
+	dsn := "fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\", dbCfg.SQLServerUsername, dbCfg.SQLServerPassword, dbCfg.SQLServerHost, dbCfg.SQLServerPort, dbCfg.SQLServerDatabase)"
+	fmt.Fprintf(
+		depsFile,
+		`package providers
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+	"%s/bootstrap/config"
+	"%s/bootstrap/event"
+	moduleConfig "%s/modules/%s/internal/app/config"
+	"%s/modules/%s/internal/presentation/routes"
+)
+
+func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleConfig.%sConfig, eventHook *event.EventHook, g *gin.Engine) {
+	// Libraries
+	// dbCfg := moduleCfg.Database()
+
+	// Uncomment this line if you want to use Firestore
+	// client, err := firestore.NewClient(context.Background(), dbCfg.FirestoreProjectID)
+
+	// Uncomment this line if you want to use SQL Server
+	// dsn := %s
+	// db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
+	// if err != nil {
+	// 	panic("failed to connect SQL Server database for session")
+	// }
+
+	// Queries
+
+	// Repositories
+
+	// Controllers
+	r := routes.NewRoutes(g)
+
+	// Route
+	do.Provide[*routes.Route](i, func(i *do.Injector) (*routes.Route, error) {
+		return r, nil
+	})
+}
+`,
+		basePkgPath,
+		basePkgPath,
+		basePkgPath,
+		name,
+		basePkgPath,
+		name,
+		strcase.UpperCamelCase(name),
+		dsn,
+	)
+
+	depsFile.Close()
 	return nil
 }

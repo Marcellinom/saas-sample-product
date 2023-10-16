@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/config"
 )
 
@@ -71,8 +70,7 @@ func (d *Data) RegenerateCSRFToken() error {
 	return d.Save()
 }
 
-func NewEmptyData(ctx *gin.Context, storage Storage) *Data {
-	cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
+func NewEmptyData(cfg config.SessionConfig, ctx *gin.Context, storage Storage) *Data {
 	expiredAt := time.Now().Add(time.Second * time.Duration(cfg.Lifetime))
 
 	return &Data{

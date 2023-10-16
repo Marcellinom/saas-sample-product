@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/joeshaw/envdecode"
-	"github.com/samber/do"
 )
 
 type OidcConfig struct {
@@ -27,7 +26,7 @@ func (c AuthConfigImpl) Oidc() OidcConfig {
 	return c.oidc
 }
 
-func NewConfig(i *do.Injector) (AuthConfig, error) {
+func SetupConfig() (AuthConfig, error) {
 	var oidc OidcConfig
 	err := envdecode.StrictDecode(&oidc)
 	if err != nil {
@@ -35,8 +34,4 @@ func NewConfig(i *do.Injector) (AuthConfig, error) {
 	}
 
 	return AuthConfigImpl{oidc}, nil
-}
-
-func init() {
-	do.Provide[AuthConfig](do.DefaultInjector, NewConfig)
 }

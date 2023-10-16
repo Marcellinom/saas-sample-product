@@ -4,12 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/config"
 )
 
-func AddCookieToResponse(ctx *gin.Context, sessionId string) {
-	cfg := do.MustInvoke[config.Config](do.DefaultInjector).Session()
+func AddCookieToResponse(cfg config.SessionConfig, ctx *gin.Context, sessionId string) {
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	// Set session cookie
 	ctx.SetCookie(cfg.CookieName, sessionId, cfg.Lifetime, cfg.CookiePath, cfg.Domain, cfg.Secure, true)
