@@ -178,22 +178,13 @@ func createListenersFile(path string, basePkgPath string, name string) error {
 		`package listeners
 
 import (
-	"github.com/mikestefanello/hooks"
-	"%s/pkg/app/common"
 	"%s/bootstrap/event"
 )
 
-func registerListeners(e *common.Event) {
-	
-}
+func RegisterListeners(eventHook *event.EventHook) {
 
-func init() {
-	event.HookEvent.Listen(func(event hooks.Event[*common.Event]) {
-		registerListeners(event.Msg)
-	})
 }
-		`,
-		basePkgPath,
+`,
 		basePkgPath,
 	)
 	moduleListenersFile.Close()
@@ -302,6 +293,7 @@ import (
 	"%s/bootstrap/config"
 	"%s/bootstrap/event"
 	moduleConfig "%s/modules/%s/internal/app/config"
+	"%s/modules/%s/internal/app/listeners"
 	"%s/modules/%s/internal/app/providers"
 	"%s/modules/%s/internal/presentation/routes"
 )
@@ -315,12 +307,15 @@ func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
 	}
 
 	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
+	listeners.RegisterListeners(eventHook)
 
 	routes.RegisterRoutes(i, g)
 }`,
 		name,
 		basePkgPath,
 		basePkgPath,
+		basePkgPath,
+		name,
 		basePkgPath,
 		name,
 		basePkgPath,
