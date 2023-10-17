@@ -178,13 +178,23 @@ func createListenersFile(path string, basePkgPath string, name string) error {
 		`package listeners
 
 import (
+	"github.com/samber/do"
 	"%s/bootstrap/event"
+	"%s/pkg/app/common"
 )
 
-func RegisterListeners(eventHook *event.EventHook) {
-
+func RegisterListeners(i *do.Injector, eventHook *event.EventHook) {
+	eventHook.Listen(func(ev common.Event) {
+		// Type check
+		// if ev, ok := ev.(*events.KelasDipilih); ok {
+		// 	// Handle
+		// 	handler := do.MustInvoke[*TambahkanPesertaKelas](i)
+		// 	handler.Handle(ev)
+		// }
+	})
 }
 `,
+		basePkgPath,
 		basePkgPath,
 	)
 	moduleListenersFile.Close()
@@ -307,7 +317,7 @@ func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
 	}
 
 	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
-	listeners.RegisterListeners(eventHook)
+	listeners.RegisterListeners(i, eventHook)
 
 	routes.RegisterRoutes(i, g)
 }`,
