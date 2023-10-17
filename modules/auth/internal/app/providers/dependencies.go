@@ -7,7 +7,6 @@ import (
 	"its.ac.id/base-go/bootstrap/event"
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
-	"its.ac.id/base-go/modules/auth/internal/presentation/routes"
 )
 
 func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleConfig.AuthConfig, eventHook *event.EventHook, g *gin.Engine) {
@@ -18,11 +17,7 @@ func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleCon
 	// Repositories
 
 	// Controllers
-	authController := controllers.NewAuthController(cfg, moduleCfg)
-	r := routes.NewRoutes(g, authController)
-
-	// Route
-	do.Provide[*routes.Route](i, func(i *do.Injector) (*routes.Route, error) {
-		return r, nil
+	do.Provide[*controllers.AuthController](i, func(i *do.Injector) (*controllers.AuthController, error) {
+		return controllers.NewAuthController(cfg, moduleCfg), nil
 	})
 }

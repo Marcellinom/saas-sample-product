@@ -11,7 +11,7 @@ import (
 )
 
 func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
-	i := do.DefaultInjector
+	i := do.New()
 
 	moduleCfg, err := moduleConfig.SetupConfig()
 	if err != nil {
@@ -20,6 +20,5 @@ func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
 
 	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
 
-	route := do.MustInvoke[*routes.Route](i)
-	route.RegisterRoutes()
+	routes.RegisterRoutes(i, g)
 }

@@ -2,30 +2,20 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 	"its.ac.id/base-go/pkg/auth/middleware"
 )
 
-type Route struct {
-	g *gin.Engine
+func RegisterRoutes(i *do.Injector, r *gin.Engine) {
+	g := r.Group("/auth")
 
-	// Tambahkan controller di sini
-	authController *controllers.AuthController
-}
+	// Controllers
+	authController := do.MustInvoke[controllers.AuthController](i)
 
-// Tambahkan controller di sini
-func NewRoutes(g *gin.Engine, authController *controllers.AuthController) *Route {
-	return &Route{
-		g:              g,
-		authController: authController,
-	}
-}
-
-func (r Route) RegisterRoutes() {
-	g := r.g.Group("/auth")
-
-	g.POST("/login", r.authController.Login)
-	g.GET("/callback", r.authController.Callback)
-	g.GET("/user", middleware.Auth(), r.authController.User)
-	g.DELETE("/logout", middleware.Auth(), r.authController.Logout)
+	// Routes
+	g.POST("/login", authController.Login)
+	g.GET("/callback", authController.Callback)
+	g.GET("/user", middleware.Auth(), authController.User)
+	g.DELETE("/logout", middleware.Auth(), authController.Logout)
 }

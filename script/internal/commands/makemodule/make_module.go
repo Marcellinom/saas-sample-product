@@ -148,31 +148,18 @@ func createRoutesFile(path string, basePkgPath string, name string) error {
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
 )
 
-type Route struct {
-	g *gin.Engine
+func RegisterRoutes(i *do.Injector, r *gin.Engine) {
+	g := g.Group("/%s")
 
-	// Tambahkan controller di sini
-	// Contoh:
-	// authController *controllers.AuthController
-}
-
-// Tambahkan controller di parameter jika ingin menginject controller
-func NewRoutes(g *gin.Engine) *Route {
-	return &Route{
-		g: g,
-		// Contoh:
-		// authController: authController,
-	}
-}
-
-func (r Route) RegisterRoutes() {
-	g := r.g.Group("/%s")
+	// Controllers
+	// contohController := do.MustInvoke[controllers.ContohController](i)
 
 	// Tambahan route di sini
 	// Contoh:
-	// g.POST("/login", r.authController.Login)
+	// g.GET("/contoh", contohController.Contoh)
 
 }`,
 		strings.ReplaceAll(name, "_", "-"),
@@ -320,7 +307,7 @@ import (
 )
 
 func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
-	i := do.DefaultInjector
+	i := do.New()
 
 	moduleCfg, err := moduleConfig.SetupConfig()
 	if err != nil {
@@ -329,8 +316,7 @@ func SetupModule(cfg config.Config, g *gin.Engine, eventHook *event.EventHook) {
 
 	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
 
-	route := do.MustInvoke[*routes.Route](i)
-	route.RegisterRoutes()
+	routes.RegisterRoutes(i, g)
 }`,
 		name,
 		basePkgPath,
@@ -362,7 +348,6 @@ import (
 	"%s/bootstrap/config"
 	"%s/bootstrap/event"
 	moduleConfig "%s/modules/%s/internal/app/config"
-	"%s/modules/%s/internal/presentation/routes"
 )
 
 func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleConfig.%sConfig, eventHook *event.EventHook, g *gin.Engine) {
@@ -384,18 +369,11 @@ func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleCon
 	// Repositories
 
 	// Controllers
-	r := routes.NewRoutes(g)
 
-	// Route
-	do.Provide[*routes.Route](i, func(i *do.Injector) (*routes.Route, error) {
-		return r, nil
-	})
 }
 `,
 		basePkgPath,
 		basePkgPath,
-		basePkgPath,
-		name,
 		basePkgPath,
 		name,
 		strcase.UpperCamelCase(name),
