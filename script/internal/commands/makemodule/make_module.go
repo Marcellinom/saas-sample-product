@@ -152,10 +152,10 @@ import (
 )
 
 func RegisterRoutes(i *do.Injector, r *gin.Engine) {
-	g := g.Group("/%s")
+	g := r.Group("/%s")
 
 	// Controllers
-	// contohController := do.MustInvoke[controllers.ContohController](i)
+	// contohController := do.MustInvoke[*controllers.ContohController](i)
 
 	// Tambahan route di sini
 	// Contoh:

@@ -11,7 +11,7 @@ func RegisterRoutes(i *do.Injector, r *gin.Engine) {
 	g := r.Group("/auth")
 
 	// Controllers
-	authController := do.MustInvoke[controllers.AuthController](i)
+	authController := do.MustInvoke[*controllers.AuthController](i)
 
 	// Routes
 	g.POST("/login", authController.Login)
