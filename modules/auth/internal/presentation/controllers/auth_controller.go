@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,17 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	})
 }
 
+// User godoc
+// @Summary		get user info
+// @Description	get user information
+// @Router		/user/:id [get]
+// @Tags		auth
+// @Param		id path string false "id"
+// @Param		username query string true "username"
+// @Param		password query string true "password"
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User} "Success"
+// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
 func (c *AuthController) User(ctx *gin.Context) {
 	u := services.User(ctx)
 	roles := make([]gin.H, 0)
@@ -88,10 +100,10 @@ func (c *AuthController) User(ctx *gin.Context) {
 		activeRole = u.ActiveRole()
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "user",
-		"data": gin.H{
+	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
+		Code:    http.StatusOK,
+		Message: "user",
+		Data: gin.H{
 			"id":          u.Id(),
 			"active_role": activeRole,
 			"roles":       roles,
@@ -110,21 +122,29 @@ func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
 	return op, nil
 }
 
+// Login godoc
+// @Summary		login user
+// @Description	call oidc login function
+// @Router		/login [post]
+// @Tags		auth
+// @Accept		json
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Success"
+// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
 func (c *AuthController) Login(ctx *gin.Context) {
 	op, err := c.getOidcClient(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "login_failed",
-			"data":    nil,
+		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "login_failed",
 		})
 	}
 	cfg := c.moduleCfg.Oidc()
 	url := op.RedirectURL(cfg.ClientID, cfg.ClientSecret, cfg.RedirectURL, cfg.Scopes)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "login_url",
-		"data":    url,
+	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
+		Code:    http.StatusOK,
+		Message: "login_url",
+		Data:    url,
 	})
 }
 

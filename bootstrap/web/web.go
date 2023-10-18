@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"its.ac.id/base-go/docs"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -91,8 +95,6 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
 		c.JSON(http.StatusInternalServerError, common.InternalServerErrorResponse)
 	}))
-	g.engine.StaticFile("/oas3.yml", "./oas3.yml")
-	g.engine.Static("/doc/api", "./static/swagger-ui")
 	g.engine.Static("/doc/project", "./static/mkdocs")
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
@@ -104,6 +106,15 @@ func (g *GinServer) buildRouter() *gin.Engine {
 			"data":    nil,
 		})
 	})
+
+	// programmatically set swagger info
+	docs.SwaggerInfo.Title = "Swagger Example API"
+	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "petstore.swagger.io"
+	docs.SwaggerInfo.BasePath = "/v2"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return g.engine
 }
