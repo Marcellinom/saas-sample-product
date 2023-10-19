@@ -88,9 +88,11 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	userID := IDToken.Subject
+	var roles []string
 	if c.isEntraID() {
 		type EntraIDClaim struct {
-			ObjectId string `json:"oid"`
+			ObjectId string   `json:"oid"`
+			Roles    []string `json:"roles"`
 		}
 		var claims EntraIDClaim
 		if err := IDToken.Claims(&claims); err != nil {
@@ -102,10 +104,14 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 			return
 		}
 
+		roles = claims.Roles
 		userID = claims.ObjectId
 	}
 
 	user := contracts.NewUser(userID)
+	for i, r := range roles {
+		user.AddRole(r, make([]string, 0), i == 0)
+	}
 	err = services.Login(ctx, user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
