@@ -104,6 +104,10 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state st
 	}
 
 	nonceIf, ok := c.sess.Get(nonceKey)
+	c.sess.Delete(nonceKey)
+	if err := c.sess.Save(); err != nil {
+		return nil, nil, err
+	}
 	nonce := ""
 	if ok {
 		nonce, ok = nonceIf.(string)
