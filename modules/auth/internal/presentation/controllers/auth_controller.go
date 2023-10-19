@@ -38,7 +38,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := op.RPInitiatedLogout(cfg.PostLogoutRedirectURI)
+	endSessionEndpoint, err := op.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
@@ -118,7 +118,6 @@ func (c *AuthController) User(ctx *gin.Context) {
 
 func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
 	cfg := c.moduleCfg.Oidc()
-	sess := session.Default(ctx)
 	op, err := oidc.NewClient(
 		ctx,
 		cfg.Provider,
@@ -126,7 +125,6 @@ func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
 		cfg.ClientSecret,
 		cfg.RedirectURL,
 		cfg.Scopes,
-		sess,
 	)
 	if err != nil {
 		return nil, err
@@ -152,7 +150,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			Message: "login_failed",
 		})
 	}
-	url, err := op.RedirectURL()
+	url, err := op.RedirectURL(session.Default(ctx))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
 			Code:    http.StatusInternalServerError,
@@ -191,7 +189,8 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	_, IDToken, err := op.ExchangeCodeForToken(ctx, queryParams.Code, queryParams.State)
+	sess := session.Default(ctx)
+	_, IDToken, err := op.ExchangeCodeForToken(ctx, sess, queryParams.Code, queryParams.State)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidIdToken) {
@@ -233,7 +232,6 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		})
 		return
 	}
-	sess := session.Default(ctx)
 	sess.Regenerate()
 	if err := sess.Save(); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

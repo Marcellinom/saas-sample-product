@@ -30,7 +30,6 @@ const (
 type Client struct {
 	provider    *oidc.Provider
 	oauthConfig oauth2.Config
-	sess        *session.Data
 
 	needToVerifyState bool
 	needToVerifyNonce bool
@@ -44,7 +43,6 @@ func NewClient(
 	clientSecret string,
 	redirectURL string,
 	scopes []string,
-	sess *session.Data,
 ) (*Client, error) {
 	provider, err := oidc.NewProvider(ctx, providerUrl)
 	if err != nil {
@@ -61,7 +59,7 @@ func NewClient(
 		Scopes: scopes,
 	}
 
-	return &Client{provider, cfg, sess, true, true, true}, nil
+	return &Client{provider, cfg, true, true, true}, nil
 }
 
 func (c *Client) SetNeedToVerifyState(needToVerifyState bool) {
@@ -76,29 +74,29 @@ func (c *Client) SetPKCEEnabled(isPKCEEnabled bool) {
 	c.isPKCEEnabled = isPKCEEnabled
 }
 
-func (c *Client) RedirectURL() (string, error) {
+func (c *Client) RedirectURL(sess *session.Data) (string, error) {
 	authCodeOptions := make([]oauth2.AuthCodeOption, 0)
 
 	if c.isPKCEEnabled {
 		codeVerifier := oauth2.GenerateVerifier()
-		c.sess.Set(codeVerifierKey, codeVerifier)
+		sess.Set(codeVerifierKey, codeVerifier)
 		authCodeOptions = append(authCodeOptions, oauth2.S256ChallengeOption(codeVerifier))
 	}
 
 	if c.needToVerifyNonce {
 		nonce := uuid.NewString()
-		c.sess.Set(nonceKey, nonce)
+		sess.Set(nonceKey, nonce)
 		authCodeOptions = append(authCodeOptions, oauth2.SetAuthURLParam("nonce", nonce))
 	}
 
 	state := ""
 	if c.needToVerifyState {
 		state = uuid.NewString()
-		c.sess.Set(stateKey, state)
+		sess.Set(stateKey, state)
 	}
 
 	isNeedToSaveSession := c.needToVerifyState || c.needToVerifyNonce || c.isPKCEEnabled
-	if err := c.sess.Save(); isNeedToSaveSession && err != nil {
+	if err := sess.Save(); isNeedToSaveSession && err != nil {
 		return "", err
 	}
 
@@ -108,13 +106,13 @@ func (c *Client) RedirectURL() (string, error) {
 	), nil
 }
 
-func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state string) (*oauth2.Token, *oidc.IDToken, error) {
-	if err := c.verifyState(state); c.needToVerifyState && err != nil {
+func (c *Client) ExchangeCodeForToken(ctx context.Context, sess *session.Data, code string, state string) (*oauth2.Token, *oidc.IDToken, error) {
+	if err := c.verifyState(sess, state); c.needToVerifyState && err != nil {
 		return nil, nil, err
 	}
 
 	authCodeOptions := make([]oauth2.AuthCodeOption, 0)
-	codeVerifier, err := c.GetCodeVerifierAndRemoveFromSession()
+	codeVerifier, err := c.GetCodeVerifierAndRemoveFromSession(sess)
 	if c.isPKCEEnabled && err != nil {
 		return nil, nil, err
 	}
@@ -137,11 +135,11 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state st
 	}
 
 	if c.needToVerifyNonce {
-		c.verifyNonce(IDToken.Nonce)
+		c.verifyNonce(sess, IDToken.Nonce)
 	}
 
-	c.sess.Set(idTokenKey, rawIDToken)
-	if err := c.sess.Save(); err != nil {
+	sess.Set(idTokenKey, rawIDToken)
+	if err := sess.Save(); err != nil {
 		return nil, nil, err
 	}
 
@@ -168,7 +166,7 @@ func (c *Client) UserInfo(ctx context.Context, t *oauth2.Token) (*oidc.UserInfo,
 	return userInfo, nil
 }
 
-func (c *Client) RPInitiatedLogout(postLogoutRedirectURI string) (string, error) {
+func (c *Client) RPInitiatedLogout(sess *session.Data, postLogoutRedirectURI string) (string, error) {
 	var claims struct {
 		EndSessionEndpoint string `json:"end_session_endpoint"`
 	}
@@ -185,12 +183,12 @@ func (c *Client) RPInitiatedLogout(postLogoutRedirectURI string) (string, error)
 	}
 	q := req.URL.Query()
 
-	idTokenHintItf, exists := c.sess.Get(idTokenKey)
+	idTokenHintItf, exists := sess.Get(idTokenKey)
 	if idTokenHint, ok := idTokenHintItf.(string); exists && ok && idTokenHint != "" {
 		q.Add("id_token_hint", idTokenHint)
 	}
-	c.sess.Delete(idTokenKey)
-	c.sess.Save()
+	sess.Delete(idTokenKey)
+	sess.Save()
 
 	if postLogoutRedirectURI != "" {
 		q.Add("post_logout_redirect_uri", postLogoutRedirectURI)
@@ -200,13 +198,13 @@ func (c *Client) RPInitiatedLogout(postLogoutRedirectURI string) (string, error)
 	return req.URL.String(), nil
 }
 
-func (c *Client) verifyState(state string) error {
-	cookieState, ok := c.sess.Get(stateKey)
+func (c *Client) verifyState(sess *session.Data, state string) error {
+	cookieState, ok := sess.Get(stateKey)
 	if !ok {
 		cookieState = ""
 	}
-	c.sess.Delete(stateKey)
-	c.sess.Save()
+	sess.Delete(stateKey)
+	sess.Save()
 
 	if state == "" || state != cookieState {
 		return ErrInvalidState
@@ -215,10 +213,10 @@ func (c *Client) verifyState(state string) error {
 	return nil
 }
 
-func (c *Client) GetCodeVerifierAndRemoveFromSession() (string, error) {
-	codeVerifierIf, ok := c.sess.Get(codeVerifierKey)
-	c.sess.Delete(codeVerifierKey)
-	if err := c.sess.Save(); err != nil {
+func (c *Client) GetCodeVerifierAndRemoveFromSession(sess *session.Data) (string, error) {
+	codeVerifierIf, ok := sess.Get(codeVerifierKey)
+	sess.Delete(codeVerifierKey)
+	if err := sess.Save(); err != nil {
 		return "", err
 	}
 	codeVerifier := ""
@@ -236,13 +234,13 @@ func (c *Client) GetCodeVerifierAndRemoveFromSession() (string, error) {
 	return codeVerifier, nil
 }
 
-func (c *Client) verifyNonce(nonce string) error {
-	cookieNonce, ok := c.sess.Get(nonceKey)
+func (c *Client) verifyNonce(sess *session.Data, nonce string) error {
+	cookieNonce, ok := sess.Get(nonceKey)
 	if !ok {
 		cookieNonce = ""
 	}
-	c.sess.Delete(nonceKey)
-	c.sess.Save()
+	sess.Delete(nonceKey)
+	sess.Save()
 
 	if nonce != cookieNonce {
 		return ErrInvalidNonce
