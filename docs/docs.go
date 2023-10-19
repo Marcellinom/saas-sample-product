@@ -9,7 +9,11 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS",
+            "url": "http://its.ac.id/dptsi",
+            "email": "dptsi@its.ac.id"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -244,6 +248,10 @@ const docTemplate = `{
             "name": "akademik_its_ac_id_session",
             "in": "cookie"
         }
+    },
+    "externalDocs": {
+        "description": "Dokumentasi Base Project",
+        "url": "http://localhost:8080/doc/project"
     }
 }`
 

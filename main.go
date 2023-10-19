@@ -13,12 +13,19 @@ import (
 	"its.ac.id/base-go/modules"
 )
 
+// @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
+// @contact.url    http://its.ac.id/dptsi
+// @contact.email  dptsi@its.ac.id
+
 // @securityDefinitions.apikey	Session
 // @in							cookie
 // @name						akademik_its_ac_id_session
 // @securityDefinitions.apikey	CSRF Token
 // @in							header
 // @name						x-csrf-token
+
+// @externalDocs.description  Dokumentasi Base Project
+// @externalDocs.url          http://localhost:8080/doc/project
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Error loading .env file")

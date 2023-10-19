@@ -34,8 +34,14 @@ definitions:
           $ref: '#/definitions/responses.Role'
         type: array
     type: object
+externalDocs:
+  description: Dokumentasi Base Project
+  url: http://localhost:8080/doc/project
 info:
-  contact: {}
+  contact:
+    email: dptsi@its.ac.id
+    name: Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
+    url: http://its.ac.id/dptsi
 paths:
   /auth/login:
     post:
