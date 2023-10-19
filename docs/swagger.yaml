@@ -75,24 +75,9 @@ paths:
       summary: login user
       tags:
       - auth
-  /user/:id:
+  /user:
     get:
       description: get user information
-      parameters:
-      - description: id
-        in: path
-        name: id
-        type: string
-      - description: username
-        in: query
-        name: username
-        required: true
-        type: string
-      - description: password
-        in: query
-        name: password
-        required: true
-        type: string
       produces:
       - application/json
       responses:

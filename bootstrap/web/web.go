@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -107,12 +108,17 @@ func (g *GinServer) buildRouter() *gin.Engine {
 		})
 	})
 
+	appURL, err := url.Parse(g.cfg.App().URL)
+	if err != nil {
+		appURL, _ = url.Parse("http://localhost:8080")
+	}
+
 	// programmatically set swagger info
-	docs.SwaggerInfo.Title = "Swagger Example API"
-	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
-	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "petstore.swagger.io"
-	docs.SwaggerInfo.BasePath = "/v2"
+	docs.SwaggerInfo.Title = g.cfg.App().Name
+	docs.SwaggerInfo.Description = g.cfg.App().Description
+	docs.SwaggerInfo.Version = g.cfg.App().Version
+	docs.SwaggerInfo.Host = appURL.Hostname()
+	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

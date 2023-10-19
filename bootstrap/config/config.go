@@ -4,13 +4,17 @@ import (
 	"github.com/joeshaw/envdecode"
 )
 
+const version = "v0.0.0"
+
 type AppConfig struct {
 	Name        string `env:"APP_NAME,default=dptsi-base-go"`
+	Description string `env:"APP_DESCRIPTION,default=Base Project Golang by DPTSI ITS"`
 	Env         string `env:"APP_ENV,default=production"`
 	Key         string `env:"APP_KEY"`
 	Debug       bool   `env:"APP_DEBUG,default=false"`
 	URL         string `env:"APP_URL,default=http://localhost"`
 	FrontendURL string `env:"APP_FRONTEND_URL,default=null"`
+	Version     string
 }
 
 type CorsConfig struct {
@@ -60,6 +64,7 @@ func SetupAppConfig() (Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	app.Version = version
 
 	var cors CorsConfig
 	err = envdecode.StrictDecode(&cors)

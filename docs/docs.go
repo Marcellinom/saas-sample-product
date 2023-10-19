@@ -77,7 +77,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/:id": {
+        "/user": {
             "get": {
                 "description": "get user information",
                 "produces": [
@@ -87,28 +87,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "get user info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path"
-                    },
-                    {
-                        "type": "string",
-                        "description": "username",
-                        "name": "username",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "password",
-                        "name": "password",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Success",
