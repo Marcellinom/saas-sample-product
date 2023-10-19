@@ -20,7 +20,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.2
 	golang.org/x/crypto v0.14.0
-	golang.org/x/oauth2 v0.8.0
+	golang.org/x/oauth2 v0.13.0
 	google.golang.org/grpc v1.56.1
 	gorm.io/driver/sqlite v1.5.3
 	gorm.io/driver/sqlserver v1.5.2
@@ -29,7 +29,7 @@ require (
 
 require (
 	cloud.google.com/go v0.110.2 // indirect
-	cloud.google.com/go/compute v1.19.3 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/longrunning v0.5.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
