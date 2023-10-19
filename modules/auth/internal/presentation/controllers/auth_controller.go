@@ -29,86 +29,6 @@ func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcCl
 	return &AuthController{appCfg, cfg, oidcClient}
 }
 
-func (c *AuthController) Logout(ctx *gin.Context) {
-	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_get_end_session_endpoint",
-			"data":    nil,
-		})
-		return
-	}
-
-	err = services.Logout(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "logout_failed",
-			"data":    nil,
-		})
-		return
-	}
-	sess := session.Default(ctx)
-	sess.Invalidate()
-	sess.RegenerateCSRFToken()
-	if err := sess.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_save_session",
-			"data":    nil,
-		})
-		return
-	}
-
-	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "logout_success",
-		"data":    endSessionEndpoint,
-	})
-}
-
-// User godoc
-// @Summary		get user info
-// @Description	get user information
-// @Router		/user/:id [get]
-// @Tags		auth
-// @Param		id path string false "id"
-// @Param		username query string true "username"
-// @Param		password query string true "password"
-// @Produce		json
-// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User} "Success"
-// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
-func (c *AuthController) User(ctx *gin.Context) {
-	u := services.User(ctx)
-	roles := make([]gin.H, 0)
-	for _, r := range u.Roles() {
-		roles = append(roles, gin.H{
-			"name":        r.Name,
-			"permissions": r.Permissions,
-			"is_default":  r.IsDefault,
-		})
-	}
-	var activeRole any
-	activeRole = nil
-	if u.ActiveRole() != "" {
-		activeRole = u.ActiveRole()
-	}
-
-	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    http.StatusOK,
-		Message: "user",
-		Data: gin.H{
-			"id":          u.Id(),
-			"active_role": activeRole,
-			"roles":       roles,
-		},
-	})
-}
-
 // Login godoc
 // @Summary		login user
 // @Description	call oidc login function
@@ -213,6 +133,84 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		"code":    http.StatusOK,
 		"message": "login_success",
 		"data":    nil,
+	})
+}
+
+// User godoc
+// @Summary		get user info
+// @Description	get user information
+// @Router		/user [get]
+// @Tags		auth
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User} "Success"
+// @Failure		401 {object} common.UnauthorizedResponseType{code=int,message=string} "Unauthorized"
+// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
+func (c *AuthController) User(ctx *gin.Context) {
+	u := services.User(ctx)
+	roles := make([]gin.H, 0)
+	for _, r := range u.Roles() {
+		roles = append(roles, gin.H{
+			"name":        r.Name,
+			"permissions": r.Permissions,
+			"is_default":  r.IsDefault,
+		})
+	}
+	var activeRole any
+	activeRole = nil
+	if u.ActiveRole() != "" {
+		activeRole = u.ActiveRole()
+	}
+
+	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
+		Code:    http.StatusOK,
+		Message: "user",
+		Data: gin.H{
+			"id":          u.Id(),
+			"active_role": activeRole,
+			"roles":       roles,
+		},
+	})
+}
+
+func (c *AuthController) Logout(ctx *gin.Context) {
+	cfg := c.moduleCfg.Oidc()
+	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_get_end_session_endpoint",
+			"data":    nil,
+		})
+		return
+	}
+
+	err = services.Logout(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "logout_failed",
+			"data":    nil,
+		})
+		return
+	}
+	sess := session.Default(ctx)
+	sess.Invalidate()
+	sess.RegenerateCSRFToken()
+	if err := sess.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "unable_to_save_session",
+			"data":    nil,
+		})
+		return
+	}
+
+	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "logout_success",
+		"data":    endSessionEndpoint,
 	})
 }
 
