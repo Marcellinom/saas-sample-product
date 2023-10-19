@@ -12,19 +12,17 @@ import (
 )
 
 var (
-	ErrNoEndSessionEndpoint = errors.New("no end session endpoint configured. Please add OIDC_END_SESSION_ENDPOINT to your .env file")
+	ErrNoEndSessionEndpoint = errors.New("this_oidc_provider_does_not_support_end_session_endpoint")
+	ErrInvalidState         = errors.New("invalid_state")
+	ErrInvalidNonce         = errors.New("invalid_nonce")
+	ErrInvalidIdToken       = errors.New("invalid_id_token")
+	ErrRetrieveUserInfo     = errors.New("error_retrieve_user_info")
 )
 
 const (
 	stateKey   = "oidc.state"
 	idTokenKey = "oidc.id_token"
 	nonceKey   = "oidc.nonce"
-
-	AuthorizationCodeNotFound = "authorization_code_not_found"
-	InvalidState              = "invalid_state"
-	InvalidNonce              = "invalid_nonce"
-	InvalidIdToken            = "invalid_id_token"
-	ErrorRetrieveUserInfo     = "error_retrieve_user_info"
 )
 
 type Client struct {
@@ -87,7 +85,7 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state st
 		c.sess.Save()
 
 		if state == "" || state != cookieState {
-			return nil, nil, errors.New(InvalidState)
+			return nil, nil, ErrInvalidState
 		}
 	}
 
@@ -115,7 +113,7 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state st
 	}
 
 	if nonce != "" && IDToken.Nonce != nonce {
-		return nil, nil, errors.New(InvalidNonce)
+		return nil, nil, ErrInvalidNonce
 	}
 
 	c.sess.Set(idTokenKey, rawIDToken)
@@ -131,7 +129,7 @@ func (c *Client) parseAndVerifyIDToken(ctx context.Context, rawIDToken string) (
 	var verifier = c.provider.Verifier(&oidc.Config{ClientID: c.oauthConfig.ClientID})
 	parsed, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return nil, errors.New(InvalidIdToken)
+		return nil, ErrInvalidIdToken
 	}
 
 	return parsed, nil
@@ -140,7 +138,7 @@ func (c *Client) parseAndVerifyIDToken(ctx context.Context, rawIDToken string) (
 func (c *Client) UserInfo(ctx context.Context, t *oauth2.Token) (*oidc.UserInfo, error) {
 	userInfo, err := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(t))
 	if err != nil {
-		return nil, errors.New(ErrorRetrieveUserInfo)
+		return nil, ErrRetrieveUserInfo
 	}
 
 	return userInfo, nil

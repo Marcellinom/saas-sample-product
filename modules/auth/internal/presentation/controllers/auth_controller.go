@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -187,7 +188,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	_, IDToken, err := op.ExchangeCodeForToken(ctx, queryParams.Code, queryParams.State)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if err.Error() == oidc.InvalidState || err.Error() == oidc.InvalidNonce {
+		if errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidIdToken) {
 			status = http.StatusBadRequest
 		}
 		ctx.JSON(status, gin.H{
