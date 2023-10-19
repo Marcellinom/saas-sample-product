@@ -152,7 +152,13 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			Message: "login_failed",
 		})
 	}
-	url := op.RedirectURL()
+	url, err := op.RedirectURL()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "unable_to_get_login_url",
+		})
+	}
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
 		Code:    http.StatusOK,
 		Message: "login_url",
