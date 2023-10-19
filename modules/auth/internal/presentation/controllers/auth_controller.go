@@ -21,24 +21,17 @@ const entraIDPrefix = "https://login.microsoftonline.com"
 type AuthController struct {
 	cfg       config.Config
 	moduleCfg moduleConfig.AuthConfig
+
+	oidcClient *oidc.Client
 }
 
-func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig) *AuthController {
-	return &AuthController{appCfg, cfg}
+func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcClient *oidc.Client) *AuthController {
+	return &AuthController{appCfg, cfg, oidcClient}
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
-	op, err := c.getOidcClient(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_get_oidc_client",
-			"data":    nil,
-		})
-		return
-	}
 	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := op.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
+	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
@@ -116,23 +109,6 @@ func (c *AuthController) User(ctx *gin.Context) {
 	})
 }
 
-func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
-	cfg := c.moduleCfg.Oidc()
-	op, err := oidc.NewClient(
-		ctx,
-		cfg.Provider,
-		cfg.ClientID,
-		cfg.ClientSecret,
-		cfg.RedirectURL,
-		cfg.Scopes,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return op, nil
-}
-
 // Login godoc
 // @Summary		login user
 // @Description	call oidc login function
@@ -143,14 +119,7 @@ func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Success"
 // @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
 func (c *AuthController) Login(ctx *gin.Context) {
-	op, err := c.getOidcClient(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "login_failed",
-		})
-	}
-	url, err := op.RedirectURL(session.Default(ctx))
+	url, err := c.oidcClient.RedirectURL(session.Default(ctx))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
 			Code:    http.StatusInternalServerError,
@@ -165,16 +134,6 @@ func (c *AuthController) Login(ctx *gin.Context) {
 }
 
 func (c *AuthController) Callback(ctx *gin.Context) {
-	op, err := c.getOidcClient(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "login_failed",
-			"data":    nil,
-		})
-		return
-	}
-
 	var queryParams struct {
 		Code  string `form:"code" binding:"required"`
 		State string `form:"state" binding:"required"`
@@ -190,7 +149,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	sess := session.Default(ctx)
-	_, IDToken, err := op.ExchangeCodeForToken(ctx, sess, queryParams.Code, queryParams.State)
+	_, IDToken, err := c.oidcClient.ExchangeCodeForToken(ctx, sess, queryParams.Code, queryParams.State)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidIdToken) {
