@@ -54,7 +54,7 @@ func Auth() gin.HandlerFunc {
 
 		u := contracts.NewUser(id)
 		for _, role := range roles {
-			u.AddRole(role.Id, role.Name, role.Permissions, role.IsDefault)
+			u.AddRole(role.Name, role.Permissions, role.IsDefault)
 		}
 		u.SetActiveRole(activeRole)
 

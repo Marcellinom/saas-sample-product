@@ -7,7 +7,6 @@ var (
 )
 
 type Role struct {
-	Id          string   `json:"id"`
 	Name        string   `json:"name"`
 	Permissions []string `json:"permissions"`
 	IsDefault   bool     `json:"is_default"`
@@ -40,9 +39,8 @@ func (u *User) Roles() []Role {
 	return u.roles
 }
 
-func (u *User) AddRole(id string, name string, permissions []string, isDefault bool) {
+func (u *User) AddRole(name string, permissions []string, isDefault bool) {
 	u.roles = append(u.roles, Role{
-		Id:          id,
 		Name:        name,
 		Permissions: permissions,
 		IsDefault:   isDefault,
@@ -53,10 +51,10 @@ func (u *User) AddRole(id string, name string, permissions []string, isDefault b
 	}
 }
 
-func (u *User) SetActiveRole(id string) error {
+func (u *User) SetActiveRole(name string) error {
 	for _, role := range u.roles {
-		if role.Id == id {
-			u.activeRole = id
+		if role.Name == name {
+			u.activeRole = name
 			return nil
 		}
 	}
@@ -66,7 +64,7 @@ func (u *User) SetActiveRole(id string) error {
 
 func (u *User) HasPermission(permission string) bool {
 	for _, role := range u.roles {
-		if role.Id == u.activeRole {
+		if role.Name == u.activeRole {
 			for _, perm := range role.Permissions {
 				if perm == permission {
 					return true
