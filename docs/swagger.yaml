@@ -11,6 +11,9 @@ definitions:
     type: object
   responses.Role:
     properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
       is_default:
         type: boolean
       name:

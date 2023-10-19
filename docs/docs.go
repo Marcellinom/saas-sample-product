@@ -202,6 +202,10 @@ const docTemplate = `{
         "responses.Role": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
                 "is_default": {
                     "type": "boolean"
                 },

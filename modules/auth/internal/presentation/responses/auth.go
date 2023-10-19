@@ -7,6 +7,7 @@ type User struct {
 }
 
 type Role struct {
+	ID          string   `json:"id" example:"00000000-0000-0000-0000-000000000000"`
 	Name        string   `json:"name" example:"Mahasiswa"`
 	Permissions []string `json:"permissions"`
 	IsDefault   bool     `json:"is_default"`
