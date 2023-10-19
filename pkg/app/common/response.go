@@ -8,6 +8,41 @@ import (
 	"its.ac.id/base-go/pkg/app/common/errors"
 )
 
+type TableAdvancedLinks struct {
+	Next string `json:"next" example:"http://localhost:8080?start_after=2021-08-01&page=3"`
+	Prev string `json:"prev" example:"http://localhost:8080?end_before=2021-08-01&page=1"`
+}
+
+type TableAdvancedMeta struct {
+	Total int `json:"total" example:"100"`
+	Range int `json:"range" example:"10"`
+	Page  int `json:"page" example:"2"`
+}
+
+type TableAdvancedResponse[T any] struct {
+	Code    int                `json:"code" example:"123"`
+	Message string             `json:"message"`
+	Links   TableAdvancedLinks `json:"links"`
+	Meta    TableAdvancedMeta  `json:"meta"`
+	Data    []T                `json:"data"`
+}
+
+type InfiniteScrollLinks struct {
+	Next string `json:"next" example:"http://localhost:8080?cursor=2021-08-01&limit=10"`
+}
+
+type InfiniteScrollMeta struct {
+	Total int `json:"total" example:"100"`
+}
+
+type InfiniteScrollResponse[T any] struct {
+	Code    int                 `json:"code" example:"123"`
+	Message string              `json:"message"`
+	Links   InfiniteScrollLinks `json:"links"`
+	Meta    InfiniteScrollMeta  `json:"meta"`
+	Data    []T                 `json:"data"`
+}
+
 var UnauthorizedResponse = gin.H{
 	"code":    http.StatusUnauthorized,
 	"message": "unauthorized",
@@ -86,18 +121,17 @@ func HandleTableAdvancedResponse[T any](ctx *gin.Context, limit int, currentPage
 		scheme = "https"
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "success",
-		"links": map[string]string{
-			"prev": fmt.Sprintf("%s://%s?end_before=%s&page=%d", scheme, ctx.Request.Host+ctx.Request.URL.Path, result.EndBefore(), max(1, currentPage-1)),
-			"next": fmt.Sprintf("%s://%s?start_after=%s&page=%d", scheme, ctx.Request.Host+ctx.Request.URL.Path, result.StartAfter(), min(result.Total()/limit+1, currentPage+1)),
+	ctx.JSON(http.StatusOK, TableAdvancedResponse[T]{
+		Code:    http.StatusOK,
+		Message: "success",
+		Links: TableAdvancedLinks{
+			Prev: fmt.Sprintf("%s://%s?end_before=%s&page=%d", scheme, ctx.Request.Host+ctx.Request.URL.Path, result.EndBefore(), max(1, currentPage-1)),
+			Next: fmt.Sprintf("%s://%s?start_after=%s&page=%d", scheme, ctx.Request.Host+ctx.Request.URL.Path, result.StartAfter(), min(result.Total()/limit+1, currentPage+1)),
 		},
-		"meta": map[string]interface{}{
-			"total": result.Total(),
-			"range": result.ItemCount(),
-			"page":  currentPage,
+		Meta: TableAdvancedMeta{
+			Total: result.Total(),
+			Range: result.ItemCount(),
+			Page:  currentPage,
 		},
-		"data": result.Data(),
 	})
 }
