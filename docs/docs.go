@@ -188,7 +188,7 @@ const docTemplate = `{
                     "example": 123
                 },
                 "data": {
-                    "description": "Link untuk logout dari provider OpenID Connect"
+                    "type": "object"
                 },
                 "message": {
                     "type": "string"

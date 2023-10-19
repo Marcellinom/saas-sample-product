@@ -5,7 +5,7 @@ definitions:
         example: 123
         type: integer
       data:
-        description: Link untuk logout dari provider OpenID Connect
+        type: object
       message:
         type: string
     type: object
