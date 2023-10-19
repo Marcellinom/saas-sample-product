@@ -15,6 +15,135 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "security": [
+                    {
+                        "CSRF Token": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication \u0026 Authorization"
+                ],
+                "summary": "Rute untuk mendapatkan link login melalui OpenID Connect",
+                "responses": {
+                    "200": {
+                        "description": "Link login berhasil didapatkan",
+                        "schema": {
+                            "$ref": "#/definitions/responses.GeneralResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Terjadi kesalahan saat menghubungi provider OpenID Connect",
+                        "schema": {
+                            "$ref": "#/definitions/responses.GeneralResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "delete": {
+                "security": [
+                    {
+                        "Session": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication \u0026 Authorization"
+                ],
+                "summary": "Rute untuk logout",
+                "responses": {
+                    "200": {
+                        "description": "Logout berhasil",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/responses.GeneralResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/user": {
+            "get": {
+                "security": [
+                    {
+                        "Session": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication \u0026 Authorization"
+                ],
+                "summary": "Rute untuk mendapatkan data user yang sedang login",
+                "responses": {
+                    "200": {
+                        "description": "Data user berhasil didapatkan",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/responses.GeneralResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/responses.User"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "roles": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/responses.Role"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/csrf-cookie": {
             "get": {
                 "produces": [
@@ -27,127 +156,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Cookie berhasil diset",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
-            "post": {
-                "description": "call oidc login function",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "login user",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/user": {
-            "get": {
-                "description": "get user information",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "get user info",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "data": {
-                                            "$ref": "#/definitions/responses.User"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "allOf": [
                                 {
@@ -182,7 +190,7 @@ const docTemplate = `{
                 "data": {},
                 "message": {
                     "type": "string",
-                    "example": "update_success"
+                    "example": "success"
                 }
             }
         },
@@ -194,17 +202,13 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "Yoga"
+                    "example": "Mahasiswa"
                 },
                 "permissions": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "example": [
-                        "[]string{bahagia",
-                        "menangis}"
-                    ]
+                    }
                 }
             }
         },
@@ -213,11 +217,11 @@ const docTemplate = `{
             "properties": {
                 "active_role": {
                     "type": "string",
-                    "example": "super admin"
+                    "example": "Mahasiswa"
                 },
                 "id": {
                     "type": "string",
-                    "example": "UUID"
+                    "example": "00000000-0000-0000-0000-000000000000"
                 },
                 "roles": {
                     "type": "array",
@@ -226,6 +230,18 @@ const docTemplate = `{
                     }
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "CSRF Token": {
+            "type": "apiKey",
+            "name": "x-csrf-token",
+            "in": "header"
+        },
+        "Session": {
+            "type": "apiKey",
+            "name": "akademik_its_ac_id_session",
+            "in": "cookie"
         }
     }
 }`

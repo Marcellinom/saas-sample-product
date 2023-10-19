@@ -6,7 +6,7 @@ definitions:
         type: integer
       data: {}
       message:
-        example: update_success
+        example: success
         type: string
     type: object
   responses.Role:
@@ -14,12 +14,9 @@ definitions:
       is_default:
         type: boolean
       name:
-        example: Yoga
+        example: Mahasiswa
         type: string
       permissions:
-        example:
-        - '[]string{bahagia'
-        - menangis}
         items:
           type: string
         type: array
@@ -27,10 +24,10 @@ definitions:
   responses.User:
     properties:
       active_role:
-        example: super admin
+        example: Mahasiswa
         type: string
       id:
-        example: UUID
+        example: 00000000-0000-0000-0000-000000000000
         type: string
       roles:
         items:
@@ -40,6 +37,77 @@ definitions:
 info:
   contact: {}
 paths:
+  /auth/login:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Link login berhasil didapatkan
+          schema:
+            $ref: '#/definitions/responses.GeneralResponse'
+        "500":
+          description: Terjadi kesalahan saat menghubungi provider OpenID Connect
+          schema:
+            $ref: '#/definitions/responses.GeneralResponse'
+      security:
+      - CSRF Token: []
+      summary: Rute untuk mendapatkan link login melalui OpenID Connect
+      tags:
+      - Authentication & Authorization
+  /auth/logout:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout berhasil
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  type: string
+                message:
+                  type: string
+              type: object
+      security:
+      - Session: []
+      summary: Rute untuk logout
+      tags:
+      - Authentication & Authorization
+  /auth/user:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data user berhasil didapatkan
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  allOf:
+                  - $ref: '#/definitions/responses.User'
+                  - properties:
+                      roles:
+                        items:
+                          $ref: '#/definitions/responses.Role'
+                        type: array
+                    type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - Session: []
+      summary: Rute untuk mendapatkan data user yang sedang login
+      tags:
+      - Authentication & Authorization
   /csrf-cookie:
     get:
       produces:
@@ -59,72 +127,13 @@ paths:
       summary: Rute dummy untuk set CSRF-TOKEN cookie
       tags:
       - CSRF Protection
-  /login:
-    post:
-      consumes:
-      - application/json
-      description: call oidc login function
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                data:
-                  type: string
-                message:
-                  type: string
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                message:
-                  type: string
-              type: object
-      summary: login user
-      tags:
-      - auth
-  /user:
-    get:
-      description: get user information
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                data:
-                  $ref: '#/definitions/responses.User'
-                message:
-                  type: string
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                message:
-                  type: string
-              type: object
-      summary: get user info
-      tags:
-      - auth
+securityDefinitions:
+  CSRF Token:
+    in: header
+    name: x-csrf-token
+    type: apiKey
+  Session:
+    in: cookie
+    name: akademik_its_ac_id_session
+    type: apiKey
 swagger: "2.0"

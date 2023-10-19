@@ -13,6 +13,12 @@ import (
 	"its.ac.id/base-go/modules"
 )
 
+// @securityDefinitions.apikey	Session
+// @in							cookie
+// @name						akademik_its_ac_id_session
+// @securityDefinitions.apikey	CSRF Token
+// @in							header
+// @name						x-csrf-token
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Error loading .env file")

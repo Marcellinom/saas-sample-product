@@ -29,15 +29,13 @@ func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcCl
 	return &AuthController{appCfg, cfg, oidcClient}
 }
 
-// Login godoc
-// @Summary		login user
-// @Description	call oidc login function
-// @Router		/login [post]
-// @Tags		auth
-// @Accept		json
+// @Summary		Rute untuk mendapatkan link login melalui OpenID Connect
+// @Router		/auth/login [post]
+// @Tags		Authentication & Authorization
 // @Produce		json
-// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Success"
-// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
+// @Security 	CSRF Token
+// @Success		200 {object} responses.GeneralResponse "Link login berhasil didapatkan"
+// @Failure		500 {object} responses.GeneralResponse "Terjadi kesalahan saat menghubungi provider OpenID Connect"
 func (c *AuthController) Login(ctx *gin.Context) {
 	url, err := c.oidcClient.RedirectURL(session.Default(ctx))
 	if err != nil {
@@ -53,6 +51,12 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
+// @Summary		Rute untuk logout
+// @Router		/auth/logout [delete]
+// @Tags		Authentication & Authorization
+// @Security	Session
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
 func (c *AuthController) Callback(ctx *gin.Context) {
 	var queryParams struct {
 		Code  string `form:"code" binding:"required"`
@@ -136,14 +140,12 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	})
 }
 
-// User godoc
-// @Summary		get user info
-// @Description	get user information
-// @Router		/user [get]
-// @Tags		auth
+// @Summary		Rute untuk mendapatkan data user yang sedang login
+// @Router		/auth/user [get]
+// @Tags		Authentication & Authorization
+// @Security	Session
 // @Produce		json
-// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User} "Success"
-// @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User{roles=[]responses.Role}} "Data user berhasil didapatkan"
 func (c *AuthController) User(ctx *gin.Context) {
 	u := services.User(ctx)
 	roles := make([]gin.H, 0)
