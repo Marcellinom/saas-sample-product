@@ -111,7 +111,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	docs.SwaggerInfo.Title = g.cfg.App().Name
 	docs.SwaggerInfo.Description = g.cfg.App().Description
 	docs.SwaggerInfo.Version = g.cfg.App().Version
-	docs.SwaggerInfo.Host = appURL.Hostname()
+	docs.SwaggerInfo.Host = appURL.Host
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
