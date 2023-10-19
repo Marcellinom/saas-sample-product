@@ -18,9 +18,11 @@ var (
 const (
 	stateKey   = "oidc.state"
 	idTokenKey = "oidc.id_token"
+	nonceKey   = "oidc.nonce"
 
 	AuthorizationCodeNotFound = "authorization_code_not_found"
 	InvalidState              = "invalid_state"
+	InvalidNonce              = "invalid_nonce"
 	InvalidIdToken            = "invalid_id_token"
 	ErrorRetrieveUserInfo     = "error_retrieve_user_info"
 )
@@ -65,9 +67,14 @@ func (c *Client) SetVerifyState(verifyState bool) {
 
 func (c *Client) RedirectURL() string {
 	state := uuid.NewString()
+	nonce := uuid.NewString()
 	c.sess.Set(stateKey, state)
+	c.sess.Set(nonceKey, nonce)
 	c.sess.Save()
-	return c.oauthConfig.AuthCodeURL(state)
+	return c.oauthConfig.AuthCodeURL(
+		state,
+		oauth2.SetAuthURLParam("nonce", nonce),
+	)
 }
 
 func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state string) (*oauth2.Token, *oidc.IDToken, error) {
@@ -96,6 +103,19 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state st
 	IDToken, err := c.parseAndVerifyIDToken(ctx, rawIDToken)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	nonceIf, ok := c.sess.Get(nonceKey)
+	nonce := ""
+	if ok {
+		nonce, ok = nonceIf.(string)
+		if !ok {
+			nonce = ""
+		}
+	}
+
+	if nonce != "" && IDToken.Nonce != nonce {
+		return nil, nil, errors.New(InvalidNonce)
 	}
 
 	c.sess.Set(idTokenKey, rawIDToken)
