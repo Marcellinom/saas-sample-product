@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 	"net/http"
+	"strings"
+
+	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/bootstrap/config"
@@ -12,6 +14,8 @@ import (
 	"its.ac.id/base-go/pkg/oidc"
 	"its.ac.id/base-go/pkg/session"
 )
+
+const entraIDPrefix = "https://login.microsoftonline.com"
 
 type AuthController struct {
 	cfg       config.Config
@@ -33,7 +37,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		return
 	}
 	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := op.RPInitiatedLogout(cfg.EndSessionEndpoint, cfg.PostLogoutRedirectURI)
+	endSessionEndpoint, err := op.RPInitiatedLogout(cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
@@ -114,7 +118,15 @@ func (c *AuthController) User(ctx *gin.Context) {
 func (c *AuthController) getOidcClient(ctx *gin.Context) (*oidc.Client, error) {
 	cfg := c.moduleCfg.Oidc()
 	sess := session.Default(ctx)
-	op, err := oidc.NewClient(ctx, cfg.Provider, sess, ctx)
+	op, err := oidc.NewClient(
+		ctx,
+		cfg.Provider,
+		cfg.ClientID,
+		cfg.ClientSecret,
+		cfg.RedirectURL,
+		cfg.Scopes,
+		sess,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +151,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			Message: "login_failed",
 		})
 	}
-	cfg := c.moduleCfg.Oidc()
-	url := op.RedirectURL(cfg.ClientID, cfg.ClientSecret, cfg.RedirectURL, cfg.Scopes)
+	url := op.RedirectURL()
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
 		Code:    http.StatusOK,
 		Message: "login_url",
@@ -159,11 +170,25 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	userInfo, err := op.UserInfo(c.moduleCfg.Oidc().ClientID, c.moduleCfg.Oidc().ClientSecret, c.moduleCfg.Oidc().RedirectURL, c.moduleCfg.Oidc().Scopes)
+	var queryParams struct {
+		Code  string `form:"code" binding:"required"`
+		State string `form:"state" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindQuery(&queryParams); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "missing_code_or_state",
+			"data":    nil,
+		})
+		return
+	}
+
+	_, IDToken, err := op.ExchangeCodeForToken(ctx, queryParams.Code, queryParams.State)
 	if err != nil {
-		status := http.StatusBadRequest
-		if err.Error() == oidc.ErrorRetrieveUserInfo {
-			status = http.StatusInternalServerError
+		status := http.StatusInternalServerError
+		if err.Error() == oidc.InvalidState {
+			status = http.StatusBadRequest
 		}
 		ctx.JSON(status, gin.H{
 			"code":    status,
@@ -172,8 +197,26 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		})
 		return
 	}
-	user := contracts.NewUser(userInfo.Subject)
 
+	userID := IDToken.Subject
+	if c.isEntraID() {
+		type EntraIDClaim struct {
+			ObjectId string `json:"oid"`
+		}
+		var claims EntraIDClaim
+		if err := IDToken.Claims(&claims); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "invalid_id_token",
+				"data":    nil,
+			})
+			return
+		}
+
+		userID = claims.ObjectId
+	}
+
+	user := contracts.NewUser(userID)
 	err = services.Login(ctx, user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -207,4 +250,8 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		"message": "login_success",
 		"data":    nil,
 	})
+}
+
+func (c *AuthController) isEntraID() bool {
+	return strings.HasPrefix(c.moduleCfg.Oidc().Provider, entraIDPrefix)
 }

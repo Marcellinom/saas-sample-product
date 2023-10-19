@@ -1,11 +1,11 @@
 package oidc
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"its.ac.id/base-go/pkg/session"
@@ -16,9 +16,8 @@ var (
 )
 
 const (
-	StateKey    = "oidc.state"
-	IdTokenKey  = "oidc.id_token"
-	StateMaxAge = 60 * 5 // 5 minutes
+	stateKey   = "oidc.state"
+	idTokenKey = "oidc.id_token"
 
 	AuthorizationCodeNotFound = "authorization_code_not_found"
 	InvalidState              = "invalid_state"
@@ -26,100 +25,100 @@ const (
 	ErrorRetrieveUserInfo     = "error_retrieve_user_info"
 )
 
-type QueryParamsProvider interface {
-	GetQuery(key string) (string, bool)
-}
-
 type Client struct {
-	p           *oidc.Provider
-	sess        *session.Data
-	qp          QueryParamsProvider
-	ctx         *gin.Context
+	provider    *oidc.Provider
+	oauthConfig oauth2.Config
 	verifyState bool
+	sess        *session.Data
 }
 
-func NewClient(ctx *gin.Context, pUrl string, sess *session.Data, qp QueryParamsProvider) (*Client, error) {
-	provider, err := oidc.NewProvider(ctx, pUrl)
+func NewClient(
+	ctx context.Context,
+	providerUrl string,
+	clientID string,
+	clientSecret string,
+	redirectURL string,
+	scopes []string,
+	sess *session.Data,
+) (*Client, error) {
+	provider, err := oidc.NewProvider(ctx, providerUrl)
 	if err != nil {
 		return nil, err
 	}
+	cfg := oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RedirectURL:  redirectURL,
 
-	return &Client{provider, sess, qp, ctx, true}, nil
+		// Discovery returns the OAuth2 endpoints.
+		Endpoint: provider.Endpoint(),
+
+		Scopes: scopes,
+	}
+
+	return &Client{provider, cfg, true, sess}, nil
 }
 
 func (c *Client) SetVerifyState(verifyState bool) {
 	c.verifyState = verifyState
 }
 
-func (c *Client) RedirectURL(clientID string, clientSecret string, redirectURL string, scopes []string) string {
-	cfg := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURL,
-
-		// Discovery returns the OAuth2 endpoints.
-		Endpoint: c.p.Endpoint(),
-
-		Scopes: scopes,
-	}
-
-	// Redirect user to consent page to ask for permission
-	// for the scopes specified above.
+func (c *Client) RedirectURL() string {
 	state := uuid.NewString()
-	c.sess.Set(StateKey, state)
+	c.sess.Set(stateKey, state)
 	c.sess.Save()
-	return cfg.AuthCodeURL(state)
+	return c.oauthConfig.AuthCodeURL(state)
 }
 
-func (c *Client) UserInfo(clientID string, clientSecret string, redirectURL string, scopes []string) (*oidc.UserInfo, error) {
-	code, exist := c.qp.GetQuery("code")
-	if !exist {
-		return nil, errors.New(AuthorizationCodeNotFound)
-	}
+func (c *Client) ExchangeCodeForToken(ctx context.Context, code string, state string) (*oauth2.Token, *oidc.IDToken, error) {
 	if c.verifyState {
-		state, exist := c.qp.GetQuery("state")
-		cookieState, ok := c.sess.Get(StateKey)
+		cookieState, ok := c.sess.Get(stateKey)
 		if !ok {
 			cookieState = ""
 		}
-		c.sess.Delete(StateKey)
+		c.sess.Delete(stateKey)
 		c.sess.Save()
 
-		if state == "" || !exist || state != cookieState {
-			return nil, errors.New(InvalidState)
+		if state == "" || state != cookieState {
+			return nil, nil, errors.New(InvalidState)
 		}
 	}
 
-	cfg := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURL,
-
-		// Discovery returns the OAuth2 endpoints.
-		Endpoint: c.p.Endpoint(),
-
-		Scopes: scopes,
-	}
-
-	token, err := cfg.Exchange(c.ctx, code)
+	token, err := c.oauthConfig.Exchange(ctx, code)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	// Extract the ID Token from OAuth2 token.
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return nil, errors.New(InvalidIdToken)
+		return nil, nil, errors.New("no_id_token_in_payload")
 	}
 
+	IDToken, err := c.parseAndVerifyIDToken(ctx, rawIDToken)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	c.sess.Set(idTokenKey, rawIDToken)
+	if err := c.sess.Save(); err != nil {
+		return nil, nil, err
+	}
+
+	return token, IDToken, nil
+}
+
+func (c *Client) parseAndVerifyIDToken(ctx context.Context, rawIDToken string) (*oidc.IDToken, error) {
 	// Parse and verify ID Token payload.
-	var verifier = c.p.Verifier(&oidc.Config{ClientID: clientID})
-	_, err = verifier.Verify(c.ctx, rawIDToken)
+	var verifier = c.provider.Verifier(&oidc.Config{ClientID: c.oauthConfig.ClientID})
+	parsed, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, errors.New(InvalidIdToken)
 	}
-	c.sess.Set(IdTokenKey, rawIDToken)
-	c.sess.Save()
-	userInfo, err := c.p.UserInfo(c.ctx, oauth2.StaticTokenSource(token))
+
+	return parsed, nil
+}
+
+func (c *Client) UserInfo(ctx context.Context, t *oauth2.Token) (*oidc.UserInfo, error) {
+	userInfo, err := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(t))
 	if err != nil {
 		return nil, errors.New(ErrorRetrieveUserInfo)
 	}
@@ -127,7 +126,14 @@ func (c *Client) UserInfo(clientID string, clientSecret string, redirectURL stri
 	return userInfo, nil
 }
 
-func (c *Client) RPInitiatedLogout(endSessionEndpoint string, postLogoutRedirectURI string) (string, error) {
+func (c *Client) RPInitiatedLogout(postLogoutRedirectURI string) (string, error) {
+	var claims struct {
+		EndSessionEndpoint string `json:"end_session_endpoint"`
+	}
+	if err := c.provider.Claims(&claims); err != nil {
+		return "", err
+	}
+	endSessionEndpoint := claims.EndSessionEndpoint
 	if endSessionEndpoint == "" {
 		return "", ErrNoEndSessionEndpoint
 	}
@@ -136,10 +142,14 @@ func (c *Client) RPInitiatedLogout(endSessionEndpoint string, postLogoutRedirect
 		return "", err
 	}
 	q := req.URL.Query()
-	idTokenHintItf, exists := c.sess.Get(IdTokenKey)
+
+	idTokenHintItf, exists := c.sess.Get(idTokenKey)
 	if idTokenHint, ok := idTokenHintItf.(string); exists && ok && idTokenHint != "" {
 		q.Add("id_token_hint", idTokenHint)
 	}
+	c.sess.Delete(idTokenKey)
+	c.sess.Save()
+
 	if postLogoutRedirectURI != "" {
 		q.Add("post_logout_redirect_uri", postLogoutRedirectURI)
 	}

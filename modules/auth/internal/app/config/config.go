@@ -10,7 +10,6 @@ type OidcConfig struct {
 	ClientSecret          string   `env:"OIDC_CLIENT_SECRET,required"`
 	RedirectURL           string   `env:"OIDC_REDIRECT_URL,required"`
 	Scopes                []string `env:"OIDC_SCOPES,default=openid,email,profile,groups"`
-	EndSessionEndpoint    string   `env:"OIDC_END_SESSION_ENDPOINT"`
 	PostLogoutRedirectURI string   `env:"OIDC_POST_LOGOUT_REDIRECT_URI"`
 }
 
