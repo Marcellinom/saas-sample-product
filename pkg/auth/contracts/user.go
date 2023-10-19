@@ -2,8 +2,8 @@ package contracts
 
 import "github.com/pkg/errors"
 
-const (
-	USER_DOESNT_HAVE_ROLE_ERROR = "user_doesnt_have_role"
+var (
+	ErrUserDoesNotHaveRole = errors.New("user_does_not_have_role")
 )
 
 type Role struct {
@@ -59,7 +59,7 @@ func (u *User) SetActiveRole(name string) error {
 		}
 	}
 
-	return errors.New(USER_DOESNT_HAVE_ROLE_ERROR)
+	return ErrUserDoesNotHaveRole
 }
 
 func (u *User) HasPermission(permission string) bool {
