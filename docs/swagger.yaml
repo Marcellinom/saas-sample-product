@@ -4,9 +4,9 @@ definitions:
       code:
         example: 123
         type: integer
-      data: {}
+      data:
+        description: Link untuk logout dari provider OpenID Connect
       message:
-        example: success
         type: string
     type: object
   responses.Role:
