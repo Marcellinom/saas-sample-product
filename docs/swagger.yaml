@@ -40,6 +40,25 @@ definitions:
 info:
   contact: {}
 paths:
+  /csrf-cookie:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cookie berhasil diset
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+              type: object
+      summary: Rute dummy untuk set CSRF-TOKEN cookie
+      tags:
+      - CSRF Protection
   /login:
     post:
       consumes:

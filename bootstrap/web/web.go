@@ -100,13 +100,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
-	g.engine.GET("/csrf-cookie", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"data":    nil,
-		})
-	})
+	g.engine.GET("/csrf-cookie", g.handleCSRFCookie)
 
 	appURL, err := url.Parse(g.cfg.App().URL)
 	if err != nil {
@@ -123,6 +117,21 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return g.engine
+}
+
+// CSRF cookie godoc
+// @Summary		Rute dummy untuk set CSRF-TOKEN cookie
+// @Router		/csrf-cookie [get]
+// @Tags		CSRF Protection
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string} "Cookie berhasil diset"
+// @Header      default {string} Set-Cookie "CSRF-TOKEN=00000000-0000-0000-0000-000000000000; Path=/"
+func (g *GinServer) handleCSRFCookie(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data":    nil,
+	})
 }
 
 func (g *GinServer) initiateCorsMiddleware() gin.HandlerFunc {
