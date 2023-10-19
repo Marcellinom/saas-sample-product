@@ -143,7 +143,6 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 // @Tags		auth
 // @Produce		json
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User} "Success"
-// @Failure		401 {object} common.UnauthorizedResponseType{code=int,message=string} "Unauthorized"
 // @Failure		500 {object} responses.GeneralResponse{code=int,message=string} "Internal Server Error"
 func (c *AuthController) User(ctx *gin.Context) {
 	u := services.User(ctx)
