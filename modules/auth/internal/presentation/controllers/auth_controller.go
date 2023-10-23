@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
@@ -12,6 +11,8 @@ import (
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
+	"its.ac.id/base-go/pkg/entra"
+	"its.ac.id/base-go/pkg/myitssso"
 	"its.ac.id/base-go/pkg/oidc"
 	"its.ac.id/base-go/pkg/session"
 )
@@ -73,47 +74,32 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	sess := session.Default(ctx)
-	_, IDToken, err := c.oidcClient.ExchangeCodeForToken(ctx, sess, queryParams.Code, queryParams.State)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidIdToken) {
-			status = http.StatusBadRequest
-		}
-		ctx.JSON(status, gin.H{
-			"code":    status,
-			"message": err.Error(),
-			"data":    nil,
-		})
-		return
-	}
-
-	userID := IDToken.Subject
-	var roles []string
+	var user *contracts.User
 	if c.isEntraID() {
-		type EntraIDClaim struct {
-			ObjectId string   `json:"oid"`
-			Roles    []string `json:"roles"`
-		}
-		var claims EntraIDClaim
-		if err := IDToken.Claims(&claims); err != nil {
+		tmp, err := entra.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
+		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"code":    http.StatusInternalServerError,
-				"message": "invalid_id_token",
+				"message": "unable_to_get_user",
 				"data":    nil,
 			})
 			return
 		}
-
-		roles = claims.Roles
-		userID = claims.ObjectId
+		user = tmp
+	} else {
+		tmp, err := myitssso.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "unable_to_get_user",
+				"data":    nil,
+			})
+			return
+		}
+		user = tmp
 	}
 
-	user := contracts.NewUser(userID)
-	for i, r := range roles {
-		user.AddRole(r, make([]string, 0), i == 0)
-	}
-	err = services.Login(ctx, user)
-	if err != nil {
+	if err := services.Login(ctx, user); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    http.StatusInternalServerError,
 			"message": "login_failed",
@@ -172,9 +158,12 @@ func (c *AuthController) User(ctx *gin.Context) {
 		Code:    http.StatusOK,
 		Message: "user",
 		Data: gin.H{
-			"id":          u.Id(),
-			"active_role": activeRole,
-			"roles":       roles,
+			"id":                 u.Id(),
+			"name":               u.Name(),
+			"email":              u.Email(),
+			"preferred_username": u.PreferredUsername(),
+			"active_role":        activeRole,
+			"roles":              roles,
 		},
 	})
 }

@@ -13,10 +13,14 @@ type Role struct {
 }
 
 type User struct {
-	id             string
-	activeRole     string
-	roles          []Role
-	hashedPassword string
+	id                 string
+	name               string
+	preferred_username string
+	email              string
+	picture            string
+	activeRole         string
+	roles              []Role
+	hashedPassword     string
 }
 
 func NewUser(id string) *User {
@@ -29,6 +33,38 @@ func NewUser(id string) *User {
 
 func (u *User) Id() string {
 	return u.id
+}
+
+func (u *User) Name() string {
+	return u.name
+}
+
+func (u *User) SetName(name string) {
+	u.name = name
+}
+
+func (u *User) PreferredUsername() string {
+	return u.preferred_username
+}
+
+func (u *User) SetPreferredUsername(preferredUsername string) {
+	u.preferred_username = preferredUsername
+}
+
+func (u *User) Email() string {
+	return u.email
+}
+
+func (u *User) SetEmail(email string) {
+	u.email = email
+}
+
+func (u *User) Picture() string {
+	return u.picture
+}
+
+func (u *User) SetPicture(picture string) {
+	u.picture = picture
 }
 
 func (u *User) ActiveRole() string {

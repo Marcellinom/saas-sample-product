@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/auth/contracts"
+	internalContract "its.ac.id/base-go/pkg/auth/internal/contracts"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
 	"its.ac.id/base-go/pkg/session"
 )
@@ -14,49 +15,31 @@ import (
 func Auth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		sess := session.Default(ctx)
-		idIf, ok := sess.Get("user.id")
+		userIf, ok := sess.Get("user")
 		if !ok {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			return
 		}
-		// TODO: Unserialize roles
-		activeRoleIf, ok := sess.Get("user.active_role")
+		userJson, ok := userIf.(string)
 		if !ok {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			return
 		}
-		rolesJsonIf, ok := sess.Get("user.roles")
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-			return
-		}
-		activeRole, ok := activeRoleIf.(string)
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-			return
-		}
-		rolesJson, ok := rolesJsonIf.(string)
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-			return
-		}
-		var roles []contracts.Role
-		err := json.Unmarshal([]byte(rolesJson), &roles)
+		var userData internalContract.UserSessionData
+		err := json.Unmarshal([]byte(userJson), &userData)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
-		}
-
-		id, ok := idIf.(string)
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
 			return
 		}
 
-		u := contracts.NewUser(id)
-		for _, role := range roles {
+		u := contracts.NewUser(userData.Id)
+		u.SetEmail(userData.Email)
+		u.SetName(userData.Name)
+		u.SetPreferredUsername(userData.PreferredUsername)
+		for _, role := range userData.Roles {
 			u.AddRole(role.Name, role.Permissions, role.IsDefault)
 		}
-		u.SetActiveRole(activeRole)
+		u.SetActiveRole(userData.ActiveRole)
 
 		ctx.Set(utils.UserKey, u)
 		ctx.Next()
