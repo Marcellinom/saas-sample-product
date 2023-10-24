@@ -148,23 +148,35 @@ func (c *AuthController) User(ctx *gin.Context) {
 			"is_default":  r.IsDefault,
 		})
 	}
-	var activeRole any
-	activeRole = nil
-	if u.ActiveRole() != "" {
-		activeRole = u.ActiveRole()
+
+	data := make(map[string]interface{})
+	data["id"] = u.Id()
+	data["name"] = nil
+	data["email"] = nil
+	data["preferred_username"] = nil
+	data["picture"] = nil
+	data["active_role"] = nil
+	if u.Name() != "" {
+		data["name"] = u.Name()
 	}
+	if u.Email() != "" {
+		data["email"] = u.Email()
+	}
+	if u.PreferredUsername() != "" {
+		data["preferred_username"] = u.PreferredUsername()
+	}
+	if u.Picture() != "" {
+		data["picture"] = u.Picture()
+	}
+	if u.ActiveRole() != "" {
+		data["active_role"] = u.ActiveRole()
+	}
+	data["roles"] = roles
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
 		Code:    http.StatusOK,
 		Message: "user",
-		Data: gin.H{
-			"id":                 u.Id(),
-			"name":               u.Name(),
-			"email":              u.Email(),
-			"preferred_username": u.PreferredUsername(),
-			"active_role":        activeRole,
-			"roles":              roles,
-		},
+		Data:    data,
 	})
 }
 
