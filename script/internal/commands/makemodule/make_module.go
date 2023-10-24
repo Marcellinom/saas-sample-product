@@ -246,19 +246,26 @@ func SetupConfig() (%sConfig, error) {
 			")\n"+
 			"\n"+
 			"type DatabaseConfig struct {\n"+
-			"	// Firestore session adapter\n"+
+			"	// Firestore adapter\n"+
 			"	FirestoreProjectID  string `env:\"%s_FIRESTORE_PROJECT_ID\"`\n"+
 			"	FirestoreCollection string `env:\"%s_FIRESTORE_COLLECTION\"`\n"+
 			"\n"+
-			"	// SQLite session adapter (GORM)\n"+
+			"	// SQLite adapter (GORM)\n"+
 			"	SQLiteDB string `env:\"%s_SQLITE_DB\"`\n"+
 			"\n"+
-			"	// SQL Server session adapter (GORM)\n"+
+			"	// SQL Server adapter (GORM)\n"+
 			"	SQLServerHost     string `env:\"%s_SQLSERVER_HOST\"`\n"+
 			"	SQLServerPort     string `env:\"%s_SQLSERVER_PORT\"`\n"+
 			"	SQLServerDatabase string `env:\"%s_SQLSERVER_DATABASE\"`\n"+
 			"	SQLServerUsername string `env:\"%s_SQLSERVER_USERNAME\"`\n"+
 			"	SQLServerPassword string `env:\"%s_SQLSERVER_PASSWORD\"`\n"+
+			"\n"+
+			"	// Firestore adapter (GORM)\n"+
+			"	PostgreSQLHost     string `env:\"%s_POSTGRES_HOST\"`\n"+
+			"	PostgreSQLPort     string `env:\"%s_POSTGRES_PORT\"`\n"+
+			"	PostgreSQLDatabase string `env:\"%s_POSTGRES_DATABASE\"`\n"+
+			"	PostgreSQLUsername string `env:\"%s_POSTGRES_USERNAME\"`\n"+
+			"	PostgreSQLPassword string `env:\"%s_POSTGRES_PASSWORD\"`\n"+
 			"}\n"+
 			"\n"+
 			"func (c %sConfigImpl) Database() DatabaseConfig {\n"+
@@ -274,6 +281,11 @@ func SetupConfig() (%sConfig, error) {
 			"\n"+
 			"	return db\n"+
 			"}\n",
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
+		uppercased,
 		uppercased,
 		uppercased,
 		uppercased,
@@ -342,7 +354,8 @@ func createDependenciesFile(path string, basePkgPath string, name string) error 
 	if err != nil {
 		return err
 	}
-	dsn := "fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\", dbCfg.SQLServerUsername, dbCfg.SQLServerPassword, dbCfg.SQLServerHost, dbCfg.SQLServerPort, dbCfg.SQLServerDatabase)"
+	sqlSrvDsn := "fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\", dbCfg.SQLServerUsername, dbCfg.SQLServerPassword, dbCfg.SQLServerHost, dbCfg.SQLServerPort, dbCfg.SQLServerDatabase)"
+	postgresDsn := "fmt.Sprintf(\"postgresql://%s:%s@%s:%s/%s?sslmode=verify-full\", dbCfg.PostgreSQLUsername, dbCfg.PostgreSQLPassword, dbCfg.PostgreSQLHost, dbCfg.PostgreSQLPort, dbCfg.PostgreSQLDatabase)"
 	fmt.Fprintf(
 		depsFile,
 		`package providers
@@ -369,6 +382,13 @@ func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleCon
 	// 	panic("failed to connect SQL Server database for session")
 	// }
 
+	// Uncomment this line if you want to use PostgreSQL
+	// dsn := %s
+	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// if err != nil {
+	// 	panic("failed to connect PostgreSQL database for session")
+	// }
+
 	// Queries
 
 	// Repositories
@@ -382,7 +402,8 @@ func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleCon
 		basePkgPath,
 		name,
 		strcase.UpperCamelCase(name),
-		dsn,
+		sqlSrvDsn,
+		postgresDsn,
 	)
 
 	depsFile.Close()
