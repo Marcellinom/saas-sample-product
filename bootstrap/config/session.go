@@ -31,6 +31,13 @@ type SessionConfig struct {
 	SQLServerDatabase string `env:"SESSION_SQLSERVER_DATABASE"`
 	SQLServerUsername string `env:"SESSION_SQLSERVER_USERNAME"`
 	SQLServerPassword string `env:"SESSION_SQLSERVER_PASSWORD"`
+
+	// PostgreSQL session adapter (GORM)
+	PostgreSQLHost     string `env:"SESSION_POSTGRES_HOST"`
+	PostgreSQLPort     string `env:"SESSION_POSTGRES_PORT"`
+	PostgreSQLDatabase string `env:"SESSION_POSTGRES_DATABASE"`
+	PostgreSQLUsername string `env:"SESSION_POSTGRES_USERNAME"`
+	PostgreSQLPassword string `env:"SESSION_POSTGRES_PASSWORD"`
 }
 
 func (c ConfigImpl) Session() SessionConfig {
@@ -41,6 +48,7 @@ var availableDrivers = []string{
 	"firestore",
 	"sqlite",
 	"sqlserver",
+	"postgres",
 }
 
 func setupSessionConfig(appName string) SessionConfig {

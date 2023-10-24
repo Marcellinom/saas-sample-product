@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/firestore"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
@@ -61,6 +62,24 @@ func setupSessionStorage(cfg config.SessionConfig) (session.Storage, error) {
 		db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 		if err != nil {
 			panic("failed to connect SQL Server database for session")
+		}
+		return adapters.NewGorm(db), nil
+	case "postgres":
+		// Contoh penggunaan adapter GORM dengan PostgreSQL
+		username := cfg.PostgreSQLUsername
+		password := cfg.PostgreSQLPassword
+		host := cfg.PostgreSQLHost
+		port := cfg.PostgreSQLPort
+		database := cfg.PostgreSQLDatabase
+
+		if username == "" || password == "" || host == "" || port == "" || database == "" {
+			panic("invalid PostgreSQL configuration for session")
+		}
+
+		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=verify-full", username, password, host, port, database)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			panic("failed to connect PostgreSQL database for session")
 		}
 		return adapters.NewGorm(db), nil
 	}
