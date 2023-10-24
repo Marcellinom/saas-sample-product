@@ -62,6 +62,10 @@ func NewClient(
 	return &Client{provider, cfg, true, true, true}, nil
 }
 
+func (c *Client) UserInfoEndpoint() string {
+	return c.provider.UserInfoEndpoint()
+}
+
 func (c *Client) SetNeedToVerifyState(needToVerifyState bool) {
 	c.needToVerifyState = needToVerifyState
 }

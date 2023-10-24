@@ -1,18 +1,48 @@
 package myitssso
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/oidc"
 	"its.ac.id/base-go/pkg/session"
 )
 
-type myITSSSOClaim struct {
-	Sub               string   `json:"sub"`
-	Name              string   `json:"name"`
-	Email             string   `json:"email"`
-	PreferredUsername string   `json:"preferred_username"`
-	Roles             []string `json:"roles"`
+type stringAsBool bool
+
+func (sb *stringAsBool) UnmarshalJSON(b []byte) error {
+	switch string(b) {
+	case "1", `"1"`:
+		*sb = true
+	case "0", `"0"`:
+		*sb = false
+	default:
+		return errors.New("invalid value for boolean")
+	}
+	return nil
+}
+
+type role struct {
+	RoleId    string       `json:"role_id"`
+	RoleName  string       `json:"role_name"`
+	IsDefault stringAsBool `json:"is_default"`
+}
+
+type userInfoRaw struct {
+	Sub               string       `json:"sub"`
+	Name              string       `json:"name"`
+	Email             string       `json:"email"`
+	EmailVerified     stringAsBool `json:"email_verified"`
+	Picture           string       `json:"picture"`
+	PreferredUsername string       `json:"preferred_username"`
+	Roles             []role       `json:"role"`
 }
 
 func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, sess *session.Data, code string, state string) (*contracts.User, error) {
@@ -21,22 +51,58 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 		return nil, err
 	}
 	// fmt.Println("token", token.AccessToken)
-	var claims myITSSSOClaim
-	userInfo, err := oidcClient.UserInfo(ctx, token)
+	userInfo, err := userInfo(ctx, oidcClient, oauth2.StaticTokenSource(token))
 	if err != nil {
 		return nil, err
 	}
-	if err := userInfo.Claims(&claims); err != nil {
-		return nil, err
-	}
 
-	user := contracts.NewUser(claims.Sub)
-	user.SetName(claims.Name)
-	user.SetPreferredUsername(claims.PreferredUsername)
-	user.SetEmail(claims.Email)
-	for i, r := range claims.Roles {
-		user.AddRole(r, make([]string, 0), i == 0)
+	user := contracts.NewUser(userInfo.Sub)
+	user.SetName(userInfo.Name)
+	user.SetPreferredUsername(userInfo.PreferredUsername)
+	user.SetEmail(userInfo.Email)
+	user.SetPicture(userInfo.Picture)
+	for _, r := range userInfo.Roles {
+		user.AddRole(r.RoleName, make([]string, 0), bool(r.IsDefault))
 	}
 
 	return user, nil
+}
+
+func userInfo(ctx context.Context, oidcClient *oidc.Client, tokenSource oauth2.TokenSource) (*userInfoRaw, error) {
+	userInfoURL := oidcClient.UserInfoEndpoint()
+	if userInfoURL == "" {
+		return nil, errors.New("oidc: user info endpoint is not supported by this provider")
+	}
+
+	req, err := http.NewRequest("GET", userInfoURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("oidc: create GET request: %v", err)
+	}
+
+	token, err := tokenSource.Token()
+	if err != nil {
+		return nil, fmt.Errorf("oidc: get access token: %v", err)
+	}
+	token.SetAuthHeader(req)
+
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s: %s", resp.Status, body)
+	}
+
+	fmt.Println("body", string(body))
+	var userInfo userInfoRaw
+	if err := json.Unmarshal(body, &userInfo); err != nil {
+		return nil, fmt.Errorf("oidc: failed to decode userinfo: %v", err)
+	}
+
+	return &userInfo, nil
 }

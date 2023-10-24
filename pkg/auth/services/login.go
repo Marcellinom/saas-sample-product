@@ -18,6 +18,7 @@ func Login(ctx *gin.Context, u *contracts.User) error {
 		Name:              u.Name(),
 		PreferredUsername: u.PreferredUsername(),
 		Email:             u.Email(),
+		Picture:           u.Picture(),
 		Roles:             u.Roles(),
 	}
 	userJson, err := json.Marshal(userData)
