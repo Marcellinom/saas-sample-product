@@ -61,12 +61,10 @@ import (
 )
 
 type %sController struct {
-	i *do.Injector
 }
 
 func New%sController() *%sController {
-	i := do.DefaultInjector
-	return &%sController{i: i}
+	return &%sController{}
 }
 		`,
 		name,
