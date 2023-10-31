@@ -148,6 +148,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/user/switch-active-role": {
+            "post": {
+                "security": [
+                    {
+                        "Session": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication \u0026 Authorization"
+                ],
+                "summary": "Rute untuk mengubah active role user",
+                "parameters": [
+                    {
+                        "description": "Nama role yang akan dijadikan active role",
+                        "name": "role",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Active role berhasil diubah",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/responses.GeneralResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "User tidak memiliki role tersebut",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/responses.GeneralResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/csrf-cookie": {
             "get": {
                 "produces": [
@@ -224,9 +301,21 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Mahasiswa"
                 },
+                "email": {
+                    "type": "string",
+                    "example": "user@contoso.com"
+                },
                 "id": {
                     "type": "string",
                     "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "preferred_username": {
+                    "type": "string",
+                    "example": "user@contoso.com"
                 },
                 "roles": {
                     "type": "array",

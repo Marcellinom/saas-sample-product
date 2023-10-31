@@ -225,3 +225,46 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 func (c *AuthController) isEntraID() bool {
 	return strings.HasPrefix(c.moduleCfg.Oidc().Provider, entraIDPrefix)
 }
+
+// @Summary		Rute untuk mengubah active role user
+// @Router		/auth/user/switch-active-role [post]
+// @Tags		Authentication & Authorization
+// @Security	Session
+// @Produce		json
+// @Param		role	body	string	true	"Nama role yang akan dijadikan active role"
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Active role berhasil diubah"
+// @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "Missing role"
+// @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "User tidak memiliki role tersebut"
+func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
+	type request struct {
+		Role string `json:"role" binding:"required"`
+	}
+	user := services.User(ctx)
+	var req request
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, &responses.GeneralResponse{
+			Code:    http.StatusBadRequest,
+			Message: "missing_role",
+		})
+		return
+	}
+	if err := user.SetActiveRole(req.Role); err != nil {
+		ctx.JSON(http.StatusBadRequest, &responses.GeneralResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
+		return
+	}
+	if err := services.Login(ctx, user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "unable_to_change_active_role",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
+		Code:    http.StatusOK,
+		Message: "active_role_changed",
+	})
+}
