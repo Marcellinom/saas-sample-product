@@ -10,7 +10,7 @@ const (
 )
 
 var statusCode = map[string]int{
-	success: 1,
+	success: 0,
 
 	// Domain error
 	userDoesNotHaveThisRole: 1001,

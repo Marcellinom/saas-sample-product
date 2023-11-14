@@ -232,7 +232,7 @@ func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    http.StatusOK,
+		Code:    statusCode["success"],
 		Message: "success",
 	})
 }
