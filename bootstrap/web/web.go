@@ -1,6 +1,8 @@
 package web
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -28,10 +30,12 @@ type Server interface {
 }
 
 func SetupServer(cfg config.Config) (Server, error) {
+	log.Println("Setting up session storage...")
 	storage, err := setupSessionStorage(cfg.Session())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("setup session storage: %w", err)
 	}
+	log.Println("Session storage successfully set up!")
 	return newGinServer(cfg, storage)
 }
 
@@ -42,6 +46,7 @@ type GinServer struct {
 }
 
 func newGinServer(cfg config.Config, sessionStorage session.Storage) (Server, error) {
+	log.Println("Setting up Gin server...")
 	appCfg := cfg.App()
 	if appCfg.Debug {
 		gin.SetMode(gin.DebugMode)
@@ -63,6 +68,7 @@ func newGinServer(cfg config.Config, sessionStorage session.Storage) (Server, er
 	s := &GinServer{r, cfg, sessionStorage}
 	s.buildRouter()
 
+	log.Println("Gin server successfully set up!")
 	return s, nil
 }
 
