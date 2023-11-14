@@ -43,18 +43,21 @@ type InfiniteScrollResponse[T any] struct {
 	Data    []T                 `json:"data"`
 }
 
+// DEPRECATED: Jangan dipakai untuk kode baru (alternatif menyusul)
 var UnauthorizedResponse = gin.H{
 	"code":    http.StatusUnauthorized,
 	"message": "unauthorized",
 	"data":    nil,
 }
 
+// DEPRECATED: Jangan dipakai untuk kode baru (alternatif menyusul)
 var InternalServerErrorResponse = gin.H{
 	"code":    http.StatusInternalServerError,
 	"message": "internal_server_error",
 	"data":    nil,
 }
 
+// DEPRECATED: Jangan dipakai untuk kode baru (alternatif menyusul)
 func AbortAndResponseErrorWithJSON(c *gin.Context, err error) {
 	if notFound, isNotFound := err.(*errors.NotFoundError); isNotFound {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{

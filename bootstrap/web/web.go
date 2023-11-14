@@ -111,6 +111,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(func(ctx *gin.Context) {
 		ctx.Set("request_id", uuid.NewString())
 	})
+	g.engine.Use(globalErrorHandler(g.cfg.App().Debug))
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
