@@ -3,16 +3,25 @@ package errors
 const NotFoundErrorDefaultMessage = "not_found"
 
 type NotFoundError struct {
-	msg string
+	code int
+	msg  string
 }
 
-func NewNotFoundError(msg string) *NotFoundError {
+func NewNotFoundErrorWithCode(code int, msg string) NotFoundError {
 	if msg == "" {
 		msg = NotFoundErrorDefaultMessage
 	}
-	return &NotFoundError{msg: msg}
+	return NotFoundError{code, msg}
 }
 
-func (e *NotFoundError) Error() string {
+func NewNotFoundError(msg string) NotFoundError {
+	return NewNotFoundErrorWithCode(404, msg)
+}
+
+func (e NotFoundError) Code() int {
+	return e.code
+}
+
+func (e NotFoundError) Error() string {
 	return e.msg
 }

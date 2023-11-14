@@ -5,13 +5,22 @@ const (
 )
 
 type AggregateVersionMismatchError struct {
-	msg string
+	code int
+	msg  string
 }
 
-func NewAggregateVersionMismatchError() *AggregateVersionMismatchError {
-	return &AggregateVersionMismatchError{AggregateVersionMismatchErrorMessage}
+func NewAggregateVersionMismatchErrorrWithCode(code int, msg string) AggregateVersionMismatchError {
+	return AggregateVersionMismatchError{code, msg}
 }
 
-func (e *AggregateVersionMismatchError) Error() string {
+func NewAggregateVersionMismatchError() AggregateVersionMismatchError {
+	return AggregateVersionMismatchError{409, AggregateVersionMismatchErrorMessage}
+}
+
+func (e AggregateVersionMismatchError) Code() int {
+	return e.code
+}
+
+func (e AggregateVersionMismatchError) Error() string {
 	return e.msg
 }

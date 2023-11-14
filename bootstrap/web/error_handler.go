@@ -32,6 +32,9 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 
 		var validationErrors validator.ValidationErrors
 		var badRequestError commonErrors.BadRequestError
+		var notFoundError commonErrors.NotFoundError
+		var aggregateVersionMismatchError commonErrors.AggregateVersionMismatchError
+		var invariantError commonErrors.InvariantError
 		if errors.As(err, &validationErrors) {
 			errorData := commonErrors.GetValidationErrors(validationErrors)
 			data["errors"] = errorData
@@ -54,6 +57,36 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				gin.H{
 					"code":    badRequestError.Code(),
 					"message": badRequestError.Message(),
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &invariantError) {
+			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    invariantError.Code(),
+					"message": invariantError.Error(),
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &notFoundError) {
+			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    notFoundError.Code(),
+					"message": notFoundError.Error(),
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &aggregateVersionMismatchError) {
+			log.Printf("Request ID: %s; Status: 409; Error: %s\n", requestId, err.Error())
+			ctx.JSON(
+				http.StatusConflict,
+				gin.H{
+					"code":    aggregateVersionMismatchError.Code(),
+					"message": aggregateVersionMismatchError.Error(),
 					"data":    data,
 				},
 			)

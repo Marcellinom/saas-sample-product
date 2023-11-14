@@ -1,13 +1,23 @@
 package errors
 
 type InvariantError struct {
-	msg string
+	code int
+	msg  string
 }
 
-func NewInvariantError(msg string) *InvariantError {
-	return &InvariantError{msg: msg}
+func NewInvariantErrorWithCode(code int, msg string) InvariantError {
+	return InvariantError{code, msg}
 }
 
-func (e *InvariantError) Error() string {
+// DEPRECATED: Jangan dipakai lagi, pakai NewInvariantErrorWithCode() saja
+func NewInvariantError(msg string) InvariantError {
+	return InvariantError{code: 400, msg: msg}
+}
+
+func (e InvariantError) Code() int {
+	return e.code
+}
+
+func (e InvariantError) Error() string {
 	return e.msg
 }
