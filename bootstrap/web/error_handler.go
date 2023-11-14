@@ -31,6 +31,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		}
 
 		var validationError validator.ValidationErrors
+		var badRequestError commonErrors.BadRequestError
 		if errors.As(err, &validationError) {
 			errorData := commonErrors.GetValidationErrors(validationError)
 			data["errors"] = errorData
@@ -40,6 +41,19 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				gin.H{
 					"code":    9998,
 					"message": "validation_error",
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &badRequestError) {
+			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
+			for key, val := range badRequestError.Data() {
+				data[key] = val
+			}
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    badRequestError.Code(),
+					"message": badRequestError.Message(),
 					"data":    data,
 				},
 			)
