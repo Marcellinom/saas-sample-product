@@ -1,6 +1,8 @@
 package entra
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/oidc"
@@ -18,12 +20,12 @@ type entraIDClaim struct {
 func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, sess *session.Data, code string, state string) (*contracts.User, error) {
 	_, IDToken, err := oidcClient.ExchangeCodeForToken(ctx, sess, code, state)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get user from entra id failed: %w", err)
 	}
-	// fmt.Println("token", token.AccessToken)
+
 	var claims entraIDClaim
 	if err := IDToken.Claims(&claims); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get user from entra id failed: %w", err)
 	}
 
 	user := contracts.NewUser(claims.ObjectId)

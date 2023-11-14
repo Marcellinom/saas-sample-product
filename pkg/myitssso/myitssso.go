@@ -48,12 +48,12 @@ type userInfoRaw struct {
 func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, sess *session.Data, code string, state string) (*contracts.User, error) {
 	token, _, err := oidcClient.ExchangeCodeForToken(ctx, sess, code, state)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get user from myits sso failed: %w", err)
 	}
 	// fmt.Println("token", token.AccessToken)
 	userInfo, err := userInfo(ctx, oidcClient, oauth2.StaticTokenSource(token))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get user from myits sso failed: %w", err)
 	}
 
 	user := contracts.NewUser(userInfo.Sub)
@@ -76,18 +76,18 @@ func userInfo(ctx context.Context, oidcClient *oidc.Client, tokenSource oauth2.T
 
 	req, err := http.NewRequest("GET", userInfoURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("oidc: create GET request: %v", err)
+		return nil, fmt.Errorf("oidc: create GET request: %w", err)
 	}
 
 	token, err := tokenSource.Token()
 	if err != nil {
-		return nil, fmt.Errorf("oidc: get access token: %v", err)
+		return nil, fmt.Errorf("oidc: get access token: %w", err)
 	}
 	token.SetAuthHeader(req)
 
 	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("oidc: user info request: %w", err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -98,7 +98,6 @@ func userInfo(ctx context.Context, oidcClient *oidc.Client, tokenSource oauth2.T
 		return nil, fmt.Errorf("%s: %s", resp.Status, body)
 	}
 
-	fmt.Println("body", string(body))
 	var userInfo userInfoRaw
 	if err := json.Unmarshal(body, &userInfo); err != nil {
 		return nil, fmt.Errorf("oidc: failed to decode userinfo: %v", err)

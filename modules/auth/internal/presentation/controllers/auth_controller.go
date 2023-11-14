@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/bootstrap/config"
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
+	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 	"its.ac.id/base-go/pkg/entra"
@@ -40,14 +43,12 @@ func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcCl
 func (c *AuthController) Login(ctx *gin.Context) {
 	url, err := c.oidcClient.RedirectURL(session.Default(ctx))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "unable_to_get_login_url",
-		})
+		ctx.Error(fmt.Errorf("unable to get login url: %w", err))
+		return
 	}
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
 		Code:    http.StatusOK,
-		Message: "login_url",
+		Message: "success",
 		Data:    url,
 	})
 }
@@ -65,55 +66,44 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBindQuery(&queryParams); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "missing_code_or_state",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
 
 	sess := session.Default(ctx)
 	var user *contracts.User
+	var err error
 	if c.isEntraID() {
-		tmp, err := entra.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "unable_to_get_user",
-				"data":    nil,
-			})
-			return
-		}
-		user = tmp
+		user, err = entra.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
 	} else {
-		tmp, err := myitssso.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "unable_to_get_user",
-				"data":    nil,
-			})
-			return
+		user, err = myitssso.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
+	}
+
+	isBadRequest := errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidCodeChallenge)
+	var message string
+	if errors.Is(err, oidc.ErrInvalidState) {
+		message = invalidState
+	} else if errors.Is(err, oidc.ErrInvalidNonce) {
+		message = invalidNonce
+	} else if errors.Is(err, oidc.ErrInvalidCodeChallenge) {
+		message = invalidCodeChallenge
+	}
+	if isBadRequest {
+		data := map[string]interface{}{}
+		if c.cfg.App().Env != "production" {
+			data["hint"] = "Jika anda menggunakan Postman saat memanggil endpoint /auth/login, maka copy URL dari halaman ini dan buat request ke URL ini melalui Postman. Jika masih gagal, ulangi sekali lagi."
 		}
-		user = tmp
+		ctx.Error(commonErrors.NewBadRequestError(statusCode[message], message, data))
+		return
 	}
 
 	if err := services.Login(ctx, user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "login_failed",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
 	sess.Regenerate()
 	if err := sess.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_save_session",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
 
@@ -126,8 +116,8 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "login_success",
+		"code":    statusCode["success"],
+		"message": "success",
 		"data":    nil,
 	})
 }
@@ -174,8 +164,8 @@ func (c *AuthController) User(ctx *gin.Context) {
 	data["roles"] = roles
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    http.StatusOK,
-		Message: "user",
+		Code:    statusCode["success"],
+		Message: "success",
 		Data:    data,
 	})
 }
@@ -184,40 +174,27 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	cfg := c.moduleCfg.Oidc()
 	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_get_end_session_endpoint",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
 
 	err = services.Logout(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "logout_failed",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
 	sess := session.Default(ctx)
 	sess.Invalidate()
 	sess.RegenerateCSRFToken()
 	if err := sess.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "unable_to_save_session",
-			"data":    nil,
-		})
+		ctx.Error(err)
 		return
 	}
-
 	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
-		"message": "logout_success",
+		"message": "success",
 		"data":    endSessionEndpoint,
 	})
 }
@@ -241,30 +218,21 @@ func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 	}
 	user := services.User(ctx)
 	var req request
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &responses.GeneralResponse{
-			Code:    http.StatusBadRequest,
-			Message: "missing_role",
-		})
+	if err := ctx.ShouldBind(&req); err != nil {
+		ctx.Error(err)
 		return
 	}
 	if err := user.SetActiveRole(req.Role); err != nil {
-		ctx.JSON(http.StatusBadRequest, &responses.GeneralResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-		})
+		ctx.Error(commonErrors.NewBadRequestError(statusCode[userDoesNotHaveThisRole], userDoesNotHaveThisRole, nil))
 		return
 	}
 	if err := services.Login(ctx, user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, &responses.GeneralResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "unable_to_change_active_role",
-		})
+		ctx.Error(err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
 		Code:    http.StatusOK,
-		Message: "active_role_changed",
+		Message: "success",
 	})
 }

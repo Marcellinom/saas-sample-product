@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -101,7 +102,7 @@ func (c *Client) RedirectURL(sess *session.Data) (string, error) {
 
 	isNeedToSaveSession := c.needToVerifyState || c.needToVerifyNonce || c.isPKCEEnabled
 	if err := sess.Save(); isNeedToSaveSession && err != nil {
-		return "", err
+		return "", fmt.Errorf("RedirectURL: %w", err)
 	}
 
 	return c.oauthConfig.AuthCodeURL(
@@ -112,13 +113,13 @@ func (c *Client) RedirectURL(sess *session.Data) (string, error) {
 
 func (c *Client) ExchangeCodeForToken(ctx context.Context, sess *session.Data, code string, state string) (*oauth2.Token, *oidc.IDToken, error) {
 	if err := c.verifyState(sess, state); c.needToVerifyState && err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 
 	authCodeOptions := make([]oauth2.AuthCodeOption, 0)
 	codeVerifier, err := c.GetCodeVerifierAndRemoveFromSession(sess)
 	if c.isPKCEEnabled && err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 	if c.isPKCEEnabled {
 		authCodeOptions = append(authCodeOptions, oauth2.VerifierOption(codeVerifier))
@@ -126,7 +127,7 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, sess *session.Data, c
 
 	token, err := c.oauthConfig.Exchange(ctx, code, authCodeOptions...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
@@ -135,7 +136,7 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, sess *session.Data, c
 
 	IDToken, err := c.parseAndVerifyIDToken(ctx, rawIDToken)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 
 	if c.needToVerifyNonce {
@@ -144,7 +145,7 @@ func (c *Client) ExchangeCodeForToken(ctx context.Context, sess *session.Data, c
 
 	sess.Set(idTokenKey, rawIDToken)
 	if err := sess.Save(); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 
 	return token, IDToken, nil
@@ -175,7 +176,7 @@ func (c *Client) RPInitiatedLogout(sess *session.Data, postLogoutRedirectURI str
 		EndSessionEndpoint string `json:"end_session_endpoint"`
 	}
 	if err := c.provider.Claims(&claims); err != nil {
-		return "", err
+		return "", fmt.Errorf("rp initiated logout: get provider claims: %w", err)
 	}
 	endSessionEndpoint := claims.EndSessionEndpoint
 	if endSessionEndpoint == "" {
@@ -183,7 +184,7 @@ func (c *Client) RPInitiatedLogout(sess *session.Data, postLogoutRedirectURI str
 	}
 	req, err := http.NewRequest("GET", endSessionEndpoint, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rp initiated logout: make request: %w", err)
 	}
 	q := req.URL.Query()
 

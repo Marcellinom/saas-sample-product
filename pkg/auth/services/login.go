@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,7 @@ func Login(ctx *gin.Context, u *contracts.User) error {
 	}
 	userJson, err := json.Marshal(userData)
 	if err != nil {
-		return err
+		return fmt.Errorf("login service failed: %w", err)
 	}
 	sess.Set("user", string(userJson))
 	sess.Save()
