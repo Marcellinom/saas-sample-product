@@ -102,7 +102,11 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
 		c.JSON(http.StatusInternalServerError, common.InternalServerErrorResponse)
 	}))
-	g.engine.Static("/doc/project", "./static/mkdocs")
+	isLocal := g.cfg.App().Env == "local"
+	isStaging := g.cfg.App().Env == "staging"
+	if isLocal || isStaging {
+		g.engine.Static("/doc/project", "./static/mkdocs")
+	}
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
@@ -114,13 +118,15 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	}
 
 	// programmatically set swagger info
-	docs.SwaggerInfo.Title = g.cfg.App().Name
-	docs.SwaggerInfo.Description = g.cfg.App().Description
-	docs.SwaggerInfo.Version = g.cfg.App().Version
-	docs.SwaggerInfo.Host = appURL.Host
-	docs.SwaggerInfo.BasePath = ""
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-	g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	if isLocal || isStaging {
+		docs.SwaggerInfo.Title = g.cfg.App().Name
+		docs.SwaggerInfo.Description = g.cfg.App().Description
+		docs.SwaggerInfo.Version = g.cfg.App().Version
+		docs.SwaggerInfo.Host = appURL.Host
+		docs.SwaggerInfo.BasePath = ""
+		docs.SwaggerInfo.Schemes = []string{"http", "https"}
+		g.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	return g.engine
 }
