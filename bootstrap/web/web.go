@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"its.ac.id/base-go/docs"
@@ -107,6 +108,9 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	if isLocal || isStaging {
 		g.engine.Static("/doc/project", "./static/mkdocs")
 	}
+	g.engine.Use(func(ctx *gin.Context) {
+		ctx.Set("request_id", uuid.NewString())
+	})
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.Use(g.initiateCorsMiddleware())
