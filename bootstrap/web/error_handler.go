@@ -30,17 +30,17 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 			"request_id": requestId,
 		}
 
-		var validationError validator.ValidationErrors
+		var validationErrors validator.ValidationErrors
 		var badRequestError commonErrors.BadRequestError
-		if errors.As(err, &validationError) {
-			errorData := commonErrors.GetValidationErrors(validationError)
+		if errors.As(err, &validationErrors) {
+			errorData := commonErrors.GetValidationErrors(validationErrors)
 			data["errors"] = errorData
 			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
 			ctx.JSON(
 				http.StatusBadRequest,
 				gin.H{
-					"code":    9998,
-					"message": "validation_error",
+					"code":    statusCode[validationError],
+					"message": validationError,
 					"data":    data,
 				},
 			)
@@ -65,8 +65,8 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 			ctx.JSON(
 				http.StatusInternalServerError,
 				gin.H{
-					"code":    9999,
-					"message": "internal_server_error",
+					"code":    statusCode[internalServerError],
+					"message": internalServerError,
 					"data":    data,
 				},
 			)
