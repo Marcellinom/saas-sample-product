@@ -1,10 +1,14 @@
 package web
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
+	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
 )
 
 func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
@@ -25,18 +29,35 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		data := gin.H{
 			"request_id": requestId,
 		}
-		log.Printf("Request ID: %s; Error: %s\n", requestId, err.Error())
-		if isDebugMode {
-			data["error"] = err.Error()
+
+		var validationError validator.ValidationErrors
+		if errors.As(err, &validationError) {
+			errorData := commonErrors.GetValidationErrors(validationError)
+			data["errors"] = errorData
+			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    9998,
+					"message": "validation_error",
+					"data":    data,
+				},
+			)
+		} else {
+			log.Printf("Request ID: %s; Status: 500; Error: %s\n", requestId, err.Error())
+			if isDebugMode {
+				data["error"] = err.Error()
+			}
+			ctx.JSON(
+				http.StatusInternalServerError,
+				gin.H{
+					"code":    9999,
+					"message": "internal_server_error",
+					"data":    data,
+				},
+			)
 		}
-		ctx.JSON(
-			http.StatusInternalServerError,
-			gin.H{
-				"code":    9999,
-				"message": "internal_server_error",
-				"data":    data,
-			},
-		)
+
 		ctx.Abort()
 	}
 }
