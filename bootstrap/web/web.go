@@ -85,6 +85,7 @@ func (g *GinServer) Engine() *gin.Engine {
 
 func (g *GinServer) buildRouter() *gin.Engine {
 	// Custom Handlers
+	g.engine.Use(g.initiateCorsMiddleware())
 	g.engine.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"code":    http.StatusNotFound,
@@ -116,7 +117,6 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	g.engine.Use(globalErrorHandler(g.cfg.App().Debug))
 	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
 	g.engine.Use(middleware.VerifyCSRFToken())
-	g.engine.Use(g.initiateCorsMiddleware())
 	g.engine.GET("/csrf-cookie", g.handleCSRFCookie)
 
 	appURL, err := url.Parse(g.cfg.App().URL)
