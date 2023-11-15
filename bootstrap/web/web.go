@@ -20,7 +20,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"its.ac.id/base-go/bootstrap/config"
-	"its.ac.id/base-go/pkg/app/common"
+	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/session"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
@@ -87,38 +87,50 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	// Custom Handlers
 	g.engine.Use(g.initiateCorsMiddleware())
 	g.engine.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"code":    http.StatusNotFound,
-			"message": "not_found",
-			"data":    nil,
-		})
+		ctx.Error(commonErrors.NewNotFoundError(""))
+		ctx.Abort()
 	})
 	g.engine.HandleMethodNotAllowed = true
 	g.engine.NoMethod(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
+		ctx.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{
 			"code":    http.StatusMethodNotAllowed,
 			"message": "method_not_allowed",
 			"data":    nil,
 		})
 	})
+	g.engine.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
+		requestId, exists := ctx.Get("request_id")
+		data := map[string]interface{}{
+			"error": "server unable to handle error",
+		}
+		if exists {
+			data["request_id"] = requestId
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"code":    statusCode[internalServerError],
+			"message": "internal_server_error",
+			"data":    data,
+		})
+	}))
+	g.engine.Use(globalErrorHandler(g.cfg.App().Debug))
 
 	// Global middleware
-	g.engine.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
-		c.JSON(http.StatusInternalServerError, common.InternalServerErrorResponse)
-	}))
+	g.engine.Use(func(ctx *gin.Context) {
+		ctx.Set("request_id", uuid.NewString())
+	})
+	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
+	g.engine.Use(middleware.VerifyCSRFToken())
+
+	// Global routes
 	isLocal := g.cfg.App().Env == "local"
 	isStaging := g.cfg.App().Env == "staging"
 	if isLocal || isStaging {
 		g.engine.Static("/doc/project", "./static/mkdocs")
 	}
-	g.engine.Use(func(ctx *gin.Context) {
-		ctx.Set("request_id", uuid.NewString())
-	})
-	g.engine.Use(globalErrorHandler(g.cfg.App().Debug))
-	g.engine.Use(middleware.StartSession(g.cfg.Session(), g.sessionStorage))
-	g.engine.Use(middleware.VerifyCSRFToken())
 	g.engine.GET("/csrf-cookie", g.handleCSRFCookie)
 
+	// Swagger
 	appURL, err := url.Parse(g.cfg.App().URL)
 	if err != nil {
 		appURL, _ = url.Parse("http://localhost:8080")
