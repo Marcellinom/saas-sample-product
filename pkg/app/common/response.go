@@ -98,8 +98,8 @@ func AbortAndResponseErrorWithJSON(c *gin.Context, err error) {
 
 func HandleInfiniteScrollResponse[T any](ctx *gin.Context, limit int, result *InfiniteScrollResult[T], err error) {
 	if err != nil {
-		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, InternalServerErrorResponse)
+		ctx.Error(err)
+		ctx.Abort()
 		return
 	}
 
@@ -123,8 +123,8 @@ func HandleInfiniteScrollResponse[T any](ctx *gin.Context, limit int, result *In
 
 func HandleTableAdvancedResponse[T any](ctx *gin.Context, limit int, currentPage int, result *TableAdvancedResult[T], err error) {
 	if err != nil {
-		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, InternalServerErrorResponse)
+		ctx.Error(err)
+		ctx.Abort()
 		return
 	}
 
