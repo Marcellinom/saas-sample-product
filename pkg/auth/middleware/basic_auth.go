@@ -59,7 +59,8 @@ func (m *BasicAuthMiddleware) Handle() gin.HandlerFunc {
 
 		user, err := m.userRepo.FindByUsername(username)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, common.InternalServerErrorResponse)
+			ctx.Error(err)
+			ctx.Abort()
 			return
 		}
 		if user == nil {

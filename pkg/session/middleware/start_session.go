@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"net/http"
+	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/bootstrap/config"
@@ -11,7 +12,9 @@ import (
 func StartSession(cfg config.SessionConfig, storage session.Storage) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if storage == nil {
-			panic("Session storage not configured. Please configure it first in bootstrap/web/web.go")
+			err := errors.New("session storage not configured. please configure it first in bootstrap/web/web.go")
+			ctx.Error(fmt.Errorf("start session middleware: %w", err))
+			ctx.Abort()
 		}
 
 		// Initialize session data
@@ -22,11 +25,8 @@ func StartSession(cfg config.SessionConfig, storage session.Storage) gin.Handler
 			// Get session data from storage
 			sess, err := storage.Get(ctx, sessionId)
 			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"code":    http.StatusInternalServerError,
-					"message": "unable_to_get_session_data",
-					"data":    nil,
-				})
+				ctx.Error(err)
+				ctx.Abort()
 				return
 			}
 			if sess != nil {
@@ -36,12 +36,8 @@ func StartSession(cfg config.SessionConfig, storage session.Storage) gin.Handler
 		if data == nil {
 			data = session.NewEmptyData(cfg, ctx, storage)
 			if err := data.Save(); err != nil {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"code":    http.StatusInternalServerError,
-					"message": "unable_to_save_session_data",
-					"data":    nil,
-				})
-				return
+				ctx.Error(fmt.Errorf("start session middleware: %w", err))
+				ctx.Abort()
 			}
 		}
 		ctx.Set("session", data)
