@@ -159,7 +159,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 // @Header      default {string} Set-Cookie "CSRF-TOKEN=00000000-0000-0000-0000-000000000000; Path=/"
 func (g *GinServer) handleCSRFCookie(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
-		"code":    200,
+		"code":    0,
 		"message": "success",
 		"data":    nil,
 	})

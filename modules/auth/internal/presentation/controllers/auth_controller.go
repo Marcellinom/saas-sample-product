@@ -47,8 +47,8 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    http.StatusOK,
-		Message: "success",
+		Code:    statusCode[successMessage],
+		Message: successMessage,
 		Data:    url,
 	})
 }
@@ -116,8 +116,8 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    statusCode["success"],
-		"message": "success",
+		"code":    statusCode[successMessage],
+		"message": successMessage,
 		"data":    nil,
 	})
 }
@@ -164,8 +164,8 @@ func (c *AuthController) User(ctx *gin.Context) {
 	data["roles"] = roles
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    statusCode["success"],
-		Message: "success",
+		Code:    statusCode[successMessage],
+		Message: successMessage,
 		Data:    data,
 	})
 }
@@ -193,8 +193,8 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
-		"message": "success",
+		"code":    statusCode[successMessage],
+		"message": successMessage,
 		"data":    endSessionEndpoint,
 	})
 }
@@ -232,7 +232,7 @@ func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, &responses.GeneralResponse{
-		Code:    statusCode["success"],
-		Message: "success",
+		Code:    statusCode[successMessage],
+		Message: successMessage,
 	})
 }

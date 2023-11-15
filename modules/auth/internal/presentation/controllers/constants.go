@@ -4,13 +4,13 @@ const (
 	invalidState         = "invalid_state"
 	invalidNonce         = "invalid_nonce"
 	invalidCodeChallenge = "invalid_code_challenge"
-	success              = "success"
+	successMessage       = "success"
 
 	userDoesNotHaveThisRole = "user_does_not_have_this_role"
 )
 
 var statusCode = map[string]int{
-	success: 0,
+	successMessage: 0,
 
 	// Domain error
 	userDoesNotHaveThisRole: 1001,
