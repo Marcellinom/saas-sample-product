@@ -2,10 +2,8 @@ package middleware
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	internalContract "its.ac.id/base-go/pkg/auth/internal/contracts"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
@@ -17,18 +15,21 @@ func Auth() gin.HandlerFunc {
 		sess := session.Default(ctx)
 		userIf, ok := sess.Get("user")
 		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 		userJson, ok := userIf.(string)
 		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 		var userData internalContract.UserSessionData
 		err := json.Unmarshal([]byte(userJson), &userData)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 

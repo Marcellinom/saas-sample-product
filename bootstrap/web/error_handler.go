@@ -36,6 +36,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		var aggregateVersionMismatchError commonErrors.AggregateVersionMismatchError
 		var invariantError commonErrors.InvariantError
 		var forbiddenErr commonErrors.ForbiddenError
+		var unauthorizedErr commonErrors.UnauthorizedError
 		if errors.As(err, &validationErrors) {
 			errorData := commonErrors.GetValidationErrors(validationErrors)
 			data["errors"] = errorData
@@ -104,6 +105,16 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				gin.H{
 					"code":    statusCode[forbiddenError],
 					"message": forbiddenError,
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &unauthorizedErr) {
+			log.Printf("Request ID: %s; Status: 401; Error: %s\n", requestId, err.Error())
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    statusCode[unauthorizedError],
+					"message": unauthorizedError,
 					"data":    data,
 				},
 			)

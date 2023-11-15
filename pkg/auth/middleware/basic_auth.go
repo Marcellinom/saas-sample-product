@@ -2,12 +2,10 @@ package middleware
 
 import (
 	"encoding/base64"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"its.ac.id/base-go/pkg/app/common"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/internal/utils"
 )
@@ -27,30 +25,35 @@ func (m *BasicAuthMiddleware) Handle() gin.HandlerFunc {
 		raw := ctx.GetHeader("Authorization")
 
 		if raw == "" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 
 		authorization := strings.Split(raw, " ")
 		if len(authorization) != 2 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 		if authorization[0] != "Basic" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 		base64Creds := authorization[1]
 
 		decoded, err := base64.StdEncoding.DecodeString(base64Creds)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 
 		creds := strings.Split(string(decoded), ":")
 		if len(creds) != 2 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 
@@ -64,13 +67,15 @@ func (m *BasicAuthMiddleware) Handle() gin.HandlerFunc {
 			return
 		}
 		if user == nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword()), []byte(password))
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, common.UnauthorizedResponse)
+			ctx.Error(unauthorizedError)
+			ctx.Abort()
 			return
 		}
 
