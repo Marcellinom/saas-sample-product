@@ -35,6 +35,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		var notFoundError commonErrors.NotFoundError
 		var aggregateVersionMismatchError commonErrors.AggregateVersionMismatchError
 		var invariantError commonErrors.InvariantError
+		var forbiddenErr commonErrors.ForbiddenError
 		if errors.As(err, &validationErrors) {
 			errorData := commonErrors.GetValidationErrors(validationErrors)
 			data["errors"] = errorData
@@ -87,6 +88,22 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				gin.H{
 					"code":    aggregateVersionMismatchError.Code(),
 					"message": aggregateVersionMismatchError.Error(),
+					"data":    data,
+				},
+			)
+		} else if errors.As(err, &forbiddenErr) {
+			log.Printf("Request ID: %s; Status: 403; Error: %s\n", requestId, err.Error())
+			if forbiddenErr.Error() != "" {
+				data["error"] = forbiddenErr.Error()
+			}
+			if forbiddenErr.Details() != "" {
+				data["error_details"] = forbiddenErr.Details()
+			}
+			ctx.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"code":    statusCode[forbiddenError],
+					"message": forbiddenError,
 					"data":    data,
 				},
 			)
