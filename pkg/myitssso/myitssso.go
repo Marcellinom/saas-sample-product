@@ -35,19 +35,14 @@ type role struct {
 	IsDefault stringAsBool `json:"is_default"`
 }
 
-type resource struct {
-	Path string `json:"path"`
-}
-
 type userInfoRaw struct {
-	Sub               string                `json:"sub"`
-	Name              string                `json:"name"`
-	Email             string                `json:"email"`
-	EmailVerified     stringAsBool          `json:"email_verified"`
-	Picture           string                `json:"picture"`
-	PreferredUsername string                `json:"preferred_username"`
-	Roles             []role                `json:"role"`
-	Resource          map[string][]resource `json:"resource"`
+	Sub               string       `json:"sub"`
+	Name              string       `json:"name"`
+	Email             string       `json:"email"`
+	EmailVerified     stringAsBool `json:"email_verified"`
+	Picture           string       `json:"picture"`
+	PreferredUsername string       `json:"preferred_username"`
+	Roles             []role       `json:"role"`
 }
 
 func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, sess *session.Data, code string, state string) (*contracts.User, error) {
@@ -67,16 +62,7 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 	user.SetEmail(userInfo.Email)
 	user.SetPicture(userInfo.Picture)
 	for _, r := range userInfo.Roles {
-		permissions := make([]string, 0)
-		resources, ok := userInfo.Resource[r.RoleName]
-		if ok {
-			permissions = make([]string, len(resources))
-			for i, resource := range resources {
-				permissions[i] = resource.Path
-			}
-		}
-
-		user.AddRole(r.RoleName, permissions, bool(r.IsDefault))
+		user.AddRole(r.RoleName, make([]string, 0), bool(r.IsDefault))
 	}
 
 	return user, nil
