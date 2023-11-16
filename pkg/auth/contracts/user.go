@@ -82,7 +82,7 @@ func (u *User) AddRole(name string, permissions []string, isDefault bool) {
 		IsDefault:   isDefault,
 	})
 
-	if isDefault && u.activeRole == "" {
+	if isDefault || u.activeRole == "" {
 		u.SetActiveRole(name)
 	}
 }
