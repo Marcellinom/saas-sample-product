@@ -73,9 +73,9 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				},
 			)
 		} else if errors.As(err, &notFoundError) {
-			log.Printf("Request ID: %s; Status: 400; Error: %s\n", requestId, err.Error())
+			log.Printf("Request ID: %s; Status: 404; Error: %s\n", requestId, err.Error())
 			ctx.JSON(
-				http.StatusBadRequest,
+				http.StatusNotFound,
 				gin.H{
 					"code":    notFoundError.Code(),
 					"message": notFoundError.Error(),
@@ -98,7 +98,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 				data["error"] = forbiddenErr.Details()
 			}
 			ctx.JSON(
-				http.StatusBadRequest,
+				http.StatusForbidden,
 				gin.H{
 					"code":    statusCode[forbiddenError],
 					"message": forbiddenErr.Error(),
@@ -108,7 +108,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		} else if errors.As(err, &unauthorizedErr) {
 			log.Printf("Request ID: %s; Status: 401; Error: %s\n", requestId, err.Error())
 			ctx.JSON(
-				http.StatusBadRequest,
+				http.StatusUnauthorized,
 				gin.H{
 					"code":    statusCode[unauthorizedError],
 					"message": unauthorizedError,
