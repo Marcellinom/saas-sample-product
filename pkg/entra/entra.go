@@ -33,7 +33,7 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 	user.SetPreferredUsername(claims.PreferredUsername)
 	user.SetEmail(claims.Email)
 	for i, r := range claims.Roles {
-		user.AddRole(r, make([]string, 0), i == 0)
+		user.AddRole(r, r, make([]string, 0), i == 0)
 	}
 
 	return user, nil

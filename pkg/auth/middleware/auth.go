@@ -39,7 +39,7 @@ func Auth() gin.HandlerFunc {
 		u.SetPreferredUsername(userData.PreferredUsername)
 		u.SetPicture(userData.Picture)
 		for _, role := range userData.Roles {
-			u.AddRole(role.Name, role.Permissions, role.IsDefault)
+			u.AddRole(role.Id, role.Name, role.Permissions, role.IsDefault)
 		}
 		u.SetActiveRole(userData.ActiveRole)
 

@@ -84,7 +84,7 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 			}
 		}
 
-		user.AddRole(r.RoleName, permissions, bool(r.IsDefault))
+		user.AddRole(r.RoleId, r.RoleName, permissions, bool(r.IsDefault))
 	}
 
 	return user, nil

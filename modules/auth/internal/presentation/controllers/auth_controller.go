@@ -133,6 +133,7 @@ func (c *AuthController) User(ctx *gin.Context) {
 	roles := make([]gin.H, 0)
 	for _, r := range u.Roles() {
 		roles = append(roles, gin.H{
+			"id":          r.Id,
 			"name":        r.Name,
 			"permissions": r.Permissions,
 			"is_default":  r.IsDefault,
@@ -160,6 +161,9 @@ func (c *AuthController) User(ctx *gin.Context) {
 	}
 	if u.ActiveRole() != "" {
 		data["active_role"] = u.ActiveRole()
+	}
+	if u.ActiveRoleName() != "" {
+		data["active_role_name"] = u.ActiveRoleName()
 	}
 	data["roles"] = roles
 
