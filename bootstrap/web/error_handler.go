@@ -94,7 +94,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 			)
 		} else if errors.As(err, &forbiddenErr) {
 			log.Printf("Request ID: %s; Status: 403; Error: %s\n", requestId, err.Error())
-			if isDebugMode && forbiddenErr.Details() != "" {
+			if forbiddenErr.Details() != "" {
 				data["error"] = forbiddenErr.Details()
 			}
 			ctx.JSON(
