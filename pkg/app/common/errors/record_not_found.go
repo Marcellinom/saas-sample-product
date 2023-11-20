@@ -1,18 +1,5 @@
 package errors
 
-const RecordNotFoundErrorDefaultMessage = "record_not_found"
+import "errors"
 
-type RecordNotFoundError struct {
-	message string
-}
-
-func NewRecordNotFoundError(msg string) RecordNotFoundError {
-	if msg == "" {
-		msg = RecordNotFoundErrorDefaultMessage
-	}
-	return RecordNotFoundError{msg}
-}
-
-func (e RecordNotFoundError) Error() string {
-	return e.message
-}
+var ErrRecordNotFound = errors.New("record_not_found")
