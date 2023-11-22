@@ -54,6 +54,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "Session": []
+                    },
+                    {
+                        "CSRF Token": []
                     }
                 ],
                 "produces": [
@@ -153,7 +156,13 @@ const docTemplate = `{
                 "security": [
                     {
                         "Session": []
+                    },
+                    {
+                        "CSRF Token": []
                     }
+                ],
+                "consumes": [
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -164,12 +173,12 @@ const docTemplate = `{
                 "summary": "Rute untuk mengubah active role user",
                 "parameters": [
                     {
-                        "description": "Nama role yang akan dijadikan active role",
-                        "name": "role",
+                        "description": "ID role yang akan dijadikan active role",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/controllers.switchActiveRoleRequest"
                         }
                     }
                 ],
@@ -261,6 +270,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controllers.switchActiveRoleRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
         "responses.GeneralResponse": {
             "type": "object",
             "properties": {

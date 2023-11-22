@@ -53,12 +53,6 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
-// @Summary		Rute untuk logout
-// @Router		/auth/logout [delete]
-// @Tags		Authentication & Authorization
-// @Security	Session
-// @Produce		json
-// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
 func (c *AuthController) Callback(ctx *gin.Context) {
 	var queryParams struct {
 		Code  string `form:"code" binding:"required"`
@@ -174,6 +168,13 @@ func (c *AuthController) User(ctx *gin.Context) {
 	})
 }
 
+// @Summary		Rute untuk logout
+// @Router		/auth/logout [delete]
+// @Tags		Authentication & Authorization
+// @Security	Session
+// @Security	CSRF Token
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
 func (c *AuthController) Logout(ctx *gin.Context) {
 	cfg := c.moduleCfg.Oidc()
 	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
@@ -207,19 +208,23 @@ func (c *AuthController) isEntraID() bool {
 	return strings.HasPrefix(c.moduleCfg.Oidc().Provider, entraIDPrefix)
 }
 
+type switchActiveRoleRequest struct {
+	Role string `json:"role" binding:"required"`
+}
+
 // @Summary		Rute untuk mengubah active role user
 // @Router		/auth/user/switch-active-role [post]
 // @Tags		Authentication & Authorization
 // @Security	Session
+// @Security	CSRF Token
+// @Accept		json
 // @Produce		json
-// @Param		role	body	string	true	"Nama role yang akan dijadikan active role"
+// @Param		body body switchActiveRoleRequest	true	"ID role yang akan dijadikan active role"
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Active role berhasil diubah"
 // @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "Missing role"
 // @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "User tidak memiliki role tersebut"
 func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
-	type request struct {
-		Role string `json:"role" binding:"required"`
-	}
+	type request switchActiveRoleRequest
 	user := services.User(ctx)
 	var req request
 	if err := ctx.ShouldBind(&req); err != nil {

@@ -1,4 +1,11 @@
 definitions:
+  controllers.switchActiveRoleRequest:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
   responses.GeneralResponse:
     properties:
       code:
@@ -90,6 +97,7 @@ paths:
               type: object
       security:
       - Session: []
+      - CSRF Token: []
       summary: Rute untuk logout
       tags:
       - Authentication & Authorization
@@ -125,13 +133,15 @@ paths:
       - Authentication & Authorization
   /auth/user/switch-active-role:
     post:
+      consumes:
+      - application/json
       parameters:
-      - description: Nama role yang akan dijadikan active role
+      - description: ID role yang akan dijadikan active role
         in: body
-        name: role
+        name: body
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/controllers.switchActiveRoleRequest'
       produces:
       - application/json
       responses:
@@ -163,6 +173,7 @@ paths:
               type: object
       security:
       - Session: []
+      - CSRF Token: []
       summary: Rute untuk mengubah active role user
       tags:
       - Authentication & Authorization

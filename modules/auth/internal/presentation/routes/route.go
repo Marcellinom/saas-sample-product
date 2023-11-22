@@ -18,5 +18,5 @@ func RegisterRoutes(i *do.Injector, r *gin.Engine) {
 	g.GET("/callback", authController.Callback)
 	g.GET("/user", middleware.Auth(), authController.User)
 	g.DELETE("/logout", middleware.Auth(), authController.Logout)
-	g.POST("/user/switch-active-role", middleware.Auth(), middleware.ActiveRoleIn("mahasiswa", "administrator"), authController.SwitchActiveRole)
+	g.POST("/user/switch-active-role", middleware.Auth(), authController.SwitchActiveRole)
 }
