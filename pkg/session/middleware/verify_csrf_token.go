@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"bitbucket.org/dptsi/base-go-libraries/app/errors"
 	"github.com/gin-gonic/gin"
-	"its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/session"
 )
 
-var errInvalidCSRFToken = errors.NewForbiddenError("invalid_csrf_token", "")
+var errInvalidCSRFToken = errors.NewForbidden(errors.ForbiddenParam{
+	Message: "invalid_csrf_token",
+})
 var methodsWithoutCSRFToken = []string{"GET", "HEAD", "OPTIONS"}
 
 func VerifyCSRFToken() gin.HandlerFunc {

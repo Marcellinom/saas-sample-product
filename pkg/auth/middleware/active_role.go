@@ -3,8 +3,8 @@ package middleware
 import (
 	"fmt"
 
+	"bitbucket.org/dptsi/base-go-libraries/app/errors"
 	"github.com/gin-gonic/gin"
-	"its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/auth/services"
 )
 
@@ -21,7 +21,10 @@ func ActiveRoleIn(roles ...string) gin.HandlerFunc {
 		msg := fmt.Sprintf("current user active role (%s) doesn't have permission to access this resource", u.ActiveRoleName())
 		// details := fmt.Sprintf("allowed role to access this resource are: %s", strings.Join(roles, ", "))
 		details := ""
-		ctx.Error(errors.NewForbiddenError(msg, details))
+		ctx.Error(errors.NewForbidden(errors.ForbiddenParam{
+			Message: msg,
+			Details: details,
+		}))
 		ctx.Abort()
 	}
 }
@@ -37,7 +40,10 @@ func ActiveRoleHasPermission(neededPermission string) gin.HandlerFunc {
 		msg := fmt.Sprintf("current user active role (%s) doesn't have permission to access this resource", u.ActiveRoleName())
 		// details := fmt.Sprintf("permission to access this resource is: %s", neededPermission)
 		details := ""
-		ctx.Error(errors.NewForbiddenError(msg, details))
+		ctx.Error(errors.NewForbidden(errors.ForbiddenParam{
+			Message: msg,
+			Details: details,
+		}))
 		ctx.Abort()
 	}
 }

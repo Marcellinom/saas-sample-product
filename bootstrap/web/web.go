@@ -15,12 +15,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"its.ac.id/base-go/docs"
 
+	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"its.ac.id/base-go/bootstrap/config"
-	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/session"
 	"its.ac.id/base-go/pkg/session/middleware"
 )
@@ -87,7 +87,7 @@ func (g *GinServer) buildRouter() *gin.Engine {
 	// Custom Handlers
 	g.engine.Use(g.initiateCorsMiddleware())
 	g.engine.NoRoute(func(ctx *gin.Context) {
-		ctx.Error(commonErrors.NewNotFoundError(""))
+		ctx.Error(commonErrors.NewNotFound(commonErrors.NotFoundParam{}))
 		ctx.Abort()
 	})
 	g.engine.HandleMethodNotAllowed = true

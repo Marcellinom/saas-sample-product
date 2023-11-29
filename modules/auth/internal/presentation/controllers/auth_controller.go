@@ -8,10 +8,10 @@ import (
 
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
+	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
 	"github.com/gin-gonic/gin"
 	"its.ac.id/base-go/bootstrap/config"
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
-	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
 	"its.ac.id/base-go/pkg/auth/contracts"
 	"its.ac.id/base-go/pkg/auth/services"
 	"its.ac.id/base-go/pkg/entra"
@@ -87,7 +87,11 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		if c.cfg.App().Env != "production" {
 			data["hint"] = "Jika anda menggunakan Postman saat memanggil endpoint /auth/login, maka copy URL dari halaman ini dan buat request ke URL ini melalui Postman. Jika masih gagal, ulangi sekali lagi."
 		}
-		ctx.Error(commonErrors.NewBadRequestError(statusCode[message], message, data))
+		ctx.Error(commonErrors.NewBadRequest(commonErrors.BadRequestParam{
+			Code:    statusCode[message],
+			Message: message,
+			Data:    data,
+		}))
 		return
 	}
 
@@ -232,7 +236,10 @@ func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 		return
 	}
 	if err := user.SetActiveRole(req.Role); err != nil {
-		ctx.Error(commonErrors.NewBadRequestError(statusCode[userDoesNotHaveThisRole], userDoesNotHaveThisRole, nil))
+		ctx.Error(commonErrors.NewBadRequest(commonErrors.BadRequestParam{
+			Code:    statusCode[userDoesNotHaveThisRole],
+			Message: userDoesNotHaveThisRole,
+		}))
 		return
 	}
 	if err := services.Login(ctx, user); err != nil {

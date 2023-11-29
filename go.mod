@@ -1,13 +1,14 @@
 module its.ac.id/base-go
 
-go 1.21.1
+go 1.21.4
 
 require (
+	bitbucket.org/dptsi/base-go-libraries v0.0.0-00010101000000-000000000000
 	cloud.google.com/go/firestore v1.13.0
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-playground/validator/v10 v10.15.5
+	github.com/go-playground/validator/v10 v10.16.0
 	github.com/google/uuid v1.3.1
 	github.com/gosimple/slug v1.13.1
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
@@ -91,3 +92,5 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace bitbucket.org/dptsi/base-go-libraries => ../base-go-libraries

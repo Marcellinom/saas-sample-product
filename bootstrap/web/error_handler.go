@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 
-	commonErrors "its.ac.id/base-go/pkg/app/common/errors"
+	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
 )
 
 func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
@@ -31,12 +31,12 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 		}
 
 		var validationErrors validator.ValidationErrors
-		var badRequestError commonErrors.BadRequestError
-		var notFoundError commonErrors.NotFoundError
-		var aggregateVersionMismatchError commonErrors.AggregateVersionMismatchError
-		var invariantError commonErrors.InvariantError
-		var forbiddenErr commonErrors.ForbiddenError
-		var unauthorizedErr commonErrors.UnauthorizedError
+		var badRequestError commonErrors.BadRequest
+		var notFoundError commonErrors.NotFound
+		var aggregateVersionMismatchError commonErrors.AggregateVersionMismatch
+		var invariantError commonErrors.Invariant
+		var forbiddenErr commonErrors.Forbidden
+		var unauthorizedErr commonErrors.Unauthorized
 		if errors.As(err, &validationErrors) {
 			errorData := commonErrors.GetValidationErrors(validationErrors)
 			data["errors"] = errorData
@@ -94,7 +94,7 @@ func globalErrorHandler(isDebugMode bool) gin.HandlerFunc {
 			)
 		} else if errors.As(err, &forbiddenErr) {
 			log.Printf("Request ID: %s; Status: 403; Error: %s\n", requestId, err.Error())
-			if forbiddenErr.Details() != "" {
+			if (isDebugMode || !forbiddenErr.IsDetailRemovedInProd()) && forbiddenErr.Details() != "" {
 				data["error"] = forbiddenErr.Details()
 			}
 			ctx.JSON(

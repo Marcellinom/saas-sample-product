@@ -1,5 +1,5 @@
 package middleware
 
-import "its.ac.id/base-go/pkg/app/common/errors"
+import "bitbucket.org/dptsi/base-go-libraries/app/errors"
 
-var unauthorizedError = errors.NewUnauthorizedError()
+var unauthorizedError = errors.NewUnauthorized(errors.UnauthorizedParam{})

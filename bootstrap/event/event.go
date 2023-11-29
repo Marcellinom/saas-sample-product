@@ -3,21 +3,21 @@ package event
 import (
 	"log"
 
+	"bitbucket.org/dptsi/base-go-libraries/app"
 	"github.com/mikestefanello/hooks"
-	"its.ac.id/base-go/pkg/app/common"
 )
 
-var hookEvent = hooks.NewHook[common.Event]("event")
+var hookEvent = hooks.NewHook[app.Event]("event")
 
 type EventHook struct {
 }
 
-func (e *EventHook) Dispatch(ev common.Event) {
+func (e *EventHook) Dispatch(ev app.Event) {
 	hookEvent.Dispatch(ev)
 }
 
-func (e *EventHook) Listen(fn func(ev common.Event)) {
-	hookEvent.Listen(func(event hooks.Event[common.Event]) {
+func (e *EventHook) Listen(fn func(ev app.Event)) {
+	hookEvent.Listen(func(event hooks.Event[app.Event]) {
 		fn(event.Msg)
 	})
 }
