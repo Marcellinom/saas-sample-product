@@ -9,28 +9,29 @@ import (
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
 	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
+	"bitbucket.org/dptsi/base-go-libraries/contracts"
+	"bitbucket.org/dptsi/base-go-libraries/entra"
+	"bitbucket.org/dptsi/base-go-libraries/myitssso"
+	"bitbucket.org/dptsi/base-go-libraries/oidc"
+	"bitbucket.org/dptsi/base-go-libraries/sessions"
 	"github.com/gin-gonic/gin"
-	"its.ac.id/base-go/bootstrap/config"
-	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
-	"its.ac.id/base-go/pkg/auth/contracts"
-	"its.ac.id/base-go/pkg/auth/services"
-	"its.ac.id/base-go/pkg/entra"
-	"its.ac.id/base-go/pkg/myitssso"
-	"its.ac.id/base-go/pkg/oidc"
-	"its.ac.id/base-go/pkg/session"
 )
 
 const entraIDPrefix = "https://login.microsoftonline.com"
 
 type AuthController struct {
-	cfg       config.Config
-	moduleCfg moduleConfig.AuthConfig
-
-	oidcClient *oidc.Client
+	oidcClient     *oidc.Client
+	sessionStorage sessions.Storage
 }
 
-func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcClient *oidc.Client) *AuthController {
-	return &AuthController{appCfg, cfg, oidcClient}
+func NewAuthController(
+	oidcClient *oidc.Client,
+	sessionStorage sessions.Storage,
+) *AuthController {
+	return &AuthController{
+		oidcClient,
+		sessionStorage,
+	}
 }
 
 // @Summary		Rute untuk mendapatkan link login melalui OpenID Connect
@@ -41,7 +42,7 @@ func NewAuthController(appCfg config.Config, cfg moduleConfig.AuthConfig, oidcCl
 // @Success		200 {object} responses.GeneralResponse "Link login berhasil didapatkan"
 // @Failure		500 {object} responses.GeneralResponse "Terjadi kesalahan saat menghubungi provider OpenID Connect"
 func (c *AuthController) Login(ctx *gin.Context) {
-	url, err := c.oidcClient.RedirectURL(session.Default(ctx))
+	url, err := c.oidcClient.RedirectURL(ctx, sessions.Default(ctx))
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to get login url: %w", err))
 		return
@@ -64,7 +65,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	sess := session.Default(ctx)
+	sess := sessions.Default(ctx)
 	var user *contracts.User
 	var err error
 	if c.isEntraID() {
@@ -99,13 +100,12 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	sess.Regenerate()
-	if err := sess.Save(); err != nil {
+	c.sessionStorage.Delete(ctx, sess.Id())
+	sess.RegenerateId()
+	if err := c.sessionStorage.Save(ctx, sess); err != nil {
 		ctx.Error(err)
 		return
 	}
-
-	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
 
 	frontendUrl := c.cfg.App().FrontendURL
 	if frontendUrl != "" {
@@ -181,7 +181,7 @@ func (c *AuthController) User(ctx *gin.Context) {
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
 func (c *AuthController) Logout(ctx *gin.Context) {
 	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(session.Default(ctx), cfg.PostLogoutRedirectURI)
+	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(sessions.Default(ctx), cfg.PostLogoutRedirectURI)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -192,7 +192,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	sess := session.Default(ctx)
+	sess := sessions.Default(ctx)
 	sess.Invalidate()
 	sess.RegenerateCSRFToken()
 	if err := sess.Save(); err != nil {

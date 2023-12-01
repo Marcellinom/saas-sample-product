@@ -3,16 +3,15 @@ package providers
 import (
 	"context"
 
+	"bitbucket.org/dptsi/base-go-libraries/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
-	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/bootstrap/event"
 	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
-	"its.ac.id/base-go/pkg/oidc"
 )
 
-func RegisterDependencies(i *do.Injector, cfg config.Config, moduleCfg moduleConfig.AuthConfig, eventHook *event.EventHook, g *gin.Engine) {
+func RegisterDependencies(i *do.Injector, moduleCfg moduleConfig.AuthConfig, eventHook *event.EventHook, g *gin.Engine) {
 	ctx := context.Background()
 	// Libraries
 	oidcCfg := moduleCfg.Oidc()

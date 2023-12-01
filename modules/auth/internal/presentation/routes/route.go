@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"bitbucket.org/dptsi/base-go-libraries/auth/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
-	"its.ac.id/base-go/pkg/auth/middleware"
 )
 
 func RegisterRoutes(i *do.Injector, r *gin.Engine) {
