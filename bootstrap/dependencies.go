@@ -4,12 +4,13 @@ import (
 	"os"
 	"strconv"
 
-	"bitbucket.org/dptsi/base-go-libraries/auth"
-	"bitbucket.org/dptsi/base-go-libraries/contracts"
-	"bitbucket.org/dptsi/base-go-libraries/database"
-	"bitbucket.org/dptsi/base-go-libraries/sessions"
-	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
-	webMiddleware "bitbucket.org/dptsi/base-go-libraries/web/middleware"
+	"bitbucket.org/dptsi/go-framework/auth"
+	authMiddleware "bitbucket.org/dptsi/go-framework/auth/middleware"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/database"
+	"bitbucket.org/dptsi/go-framework/sessions"
+	sessionsMiddleware "bitbucket.org/dptsi/go-framework/sessions/middleware"
+	webMiddleware "bitbucket.org/dptsi/go-framework/web/middleware"
 	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/middleware"
 )
@@ -61,5 +62,8 @@ func CreateObjects(i *do.Injector) {
 		return auth.NewService(
 			do.MustInvoke[contracts.SessionStorage](i),
 		), nil
+	})
+	do.Provide[*authMiddleware.ActiveRole](i, func(i *do.Injector) (*authMiddleware.ActiveRole, error) {
+		return authMiddleware.NewActiveRole(*do.MustInvoke[*auth.Service](i)), nil
 	})
 }

@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"bitbucket.org/dptsi/base-go-libraries/database"
+	"bitbucket.org/dptsi/go-framework/database"
 	"github.com/samber/do"
 )
 

@@ -3,7 +3,7 @@ module its.ac.id/base-go
 go 1.21.4
 
 require (
-	bitbucket.org/dptsi/base-go-libraries v0.0.0-00010101000000-000000000000
+	bitbucket.org/dptsi/go-framework v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
 	github.com/mikestefanello/hooks v0.1.0
@@ -70,4 +70,4 @@ require (
 	gorm.io/gorm v1.25.5 // indirect
 )
 
-replace bitbucket.org/dptsi/base-go-libraries => ../base-go-libraries
+replace bitbucket.org/dptsi/go-framework => ../base-go-libraries

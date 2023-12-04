@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"os"
 
-	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
-	"bitbucket.org/dptsi/base-go-libraries/web"
+	sessionsMiddleware "bitbucket.org/dptsi/go-framework/sessions/middleware"
+	"bitbucket.org/dptsi/go-framework/web"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"

@@ -9,13 +9,13 @@ import (
 
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
-	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
-	"bitbucket.org/dptsi/base-go-libraries/auth"
-	"bitbucket.org/dptsi/base-go-libraries/contracts"
-	"bitbucket.org/dptsi/base-go-libraries/entra"
-	"bitbucket.org/dptsi/base-go-libraries/myitssso"
-	"bitbucket.org/dptsi/base-go-libraries/oidc"
-	"bitbucket.org/dptsi/base-go-libraries/sessions"
+	commonErrors "bitbucket.org/dptsi/go-framework/app/errors"
+	"bitbucket.org/dptsi/go-framework/auth"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/entra"
+	"bitbucket.org/dptsi/go-framework/myitssso"
+	"bitbucket.org/dptsi/go-framework/oidc"
+	"bitbucket.org/dptsi/go-framework/sessions"
 	"github.com/gin-gonic/gin"
 )
 

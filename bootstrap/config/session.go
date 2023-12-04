@@ -1,9 +1,9 @@
 package config
 
 import (
-	"bitbucket.org/dptsi/base-go-libraries/contracts"
-	"bitbucket.org/dptsi/base-go-libraries/database"
-	"bitbucket.org/dptsi/base-go-libraries/sessions/adapters"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/database"
+	"bitbucket.org/dptsi/go-framework/sessions/adapters"
 	"github.com/samber/do"
 )
 

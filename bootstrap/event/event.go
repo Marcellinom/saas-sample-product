@@ -3,7 +3,7 @@ package event
 import (
 	"log"
 
-	"bitbucket.org/dptsi/base-go-libraries/contracts"
+	"bitbucket.org/dptsi/go-framework/contracts"
 	"github.com/mikestefanello/hooks"
 )
 

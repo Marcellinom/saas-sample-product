@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/dptsi/base-go-libraries/auth"
-	"bitbucket.org/dptsi/base-go-libraries/contracts"
-	"bitbucket.org/dptsi/base-go-libraries/oidc"
-	"bitbucket.org/dptsi/base-go-libraries/sessions"
+	"bitbucket.org/dptsi/go-framework/auth"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/oidc"
+	"bitbucket.org/dptsi/go-framework/sessions"
 	"github.com/samber/do"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )

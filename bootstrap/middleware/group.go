@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
-	"bitbucket.org/dptsi/base-go-libraries/web/middleware"
+	sessionsMiddleware "bitbucket.org/dptsi/go-framework/sessions/middleware"
+	"bitbucket.org/dptsi/go-framework/web/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )

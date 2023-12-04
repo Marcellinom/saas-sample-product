@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bitbucket.org/dptsi/base-go-libraries/auth/middleware"
+	"bitbucket.org/dptsi/go-framework/auth/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	mg "its.ac.id/base-go/bootstrap/middleware"
