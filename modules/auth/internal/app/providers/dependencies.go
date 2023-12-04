@@ -3,7 +3,10 @@ package providers
 import (
 	"context"
 
+	"bitbucket.org/dptsi/base-go-libraries/auth"
+	"bitbucket.org/dptsi/base-go-libraries/contracts"
 	"bitbucket.org/dptsi/base-go-libraries/oidc"
+	"bitbucket.org/dptsi/base-go-libraries/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	"its.ac.id/base-go/bootstrap/event"
@@ -18,6 +21,7 @@ func RegisterDependencies(i *do.Injector, moduleCfg moduleConfig.AuthConfig, eve
 	do.Provide[*oidc.Client](i, func(i *do.Injector) (*oidc.Client, error) {
 		return oidc.NewClient(
 			ctx,
+			do.MustInvoke[contracts.SessionStorage](i),
 			oidcCfg.Provider,
 			oidcCfg.ClientID,
 			oidcCfg.ClientSecret,
@@ -32,6 +36,11 @@ func RegisterDependencies(i *do.Injector, moduleCfg moduleConfig.AuthConfig, eve
 
 	// Controllers
 	do.Provide[*controllers.AuthController](i, func(i *do.Injector) (*controllers.AuthController, error) {
-		return controllers.NewAuthController(cfg, moduleCfg, do.MustInvoke[*oidc.Client](i)), nil
+		return controllers.NewAuthController(
+			do.MustInvoke[*oidc.Client](i),
+			do.MustInvoke[contracts.SessionStorage](i),
+			do.MustInvoke[*auth.Service](i),
+			do.MustInvoke[*sessions.CookieUtil](i),
+		), nil
 	})
 }

@@ -9,15 +9,15 @@ import (
 	"its.ac.id/base-go/modules/auth/internal/presentation/routes"
 )
 
-func SetupModule(g *gin.Engine, eventHook *event.EventHook) {
-	i := do.New()
+func SetupModule(i *do.Injector, g *gin.Engine, eventHook *event.EventHook) {
+	i = i.Clone()
 
 	moduleCfg, err := moduleConfig.SetupConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	providers.RegisterDependencies(i, cfg, moduleCfg, eventHook, g)
+	providers.RegisterDependencies(i, moduleCfg, eventHook, g)
 
 	routes.RegisterRoutes(i, g)
 }

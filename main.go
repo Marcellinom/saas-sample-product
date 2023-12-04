@@ -3,14 +3,21 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 
+	"bitbucket.org/dptsi/base-go-libraries/auth"
+	"bitbucket.org/dptsi/base-go-libraries/contracts"
+	"bitbucket.org/dptsi/base-go-libraries/database"
+	"bitbucket.org/dptsi/base-go-libraries/sessions"
+	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
 	"bitbucket.org/dptsi/base-go-libraries/web"
 	webMiddleware "bitbucket.org/dptsi/base-go-libraries/web/middleware"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
+	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/bootstrap/event"
 	"its.ac.id/base-go/bootstrap/middleware"
-	// Services
+	"its.ac.id/base-go/modules"
 )
 
 // @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
@@ -46,6 +53,14 @@ func main() {
 	}
 	log.Println("Web server successfully set up!")
 
+	log.Println("Setting up database...")
+	config.SetupDatabase(i)
+	log.Println("Database successfully set up!")
+
+	log.Println("Setting up session...")
+	config.SetupSession(i)
+	log.Println("Session successfully set up!")
+
 	log.Println("Setting up event hook...")
 	eventHook := event.SetupEventHook()
 	log.Println("Event hook successfully set up!")
@@ -53,9 +68,9 @@ func main() {
 		return eventHook, nil
 	})
 
-	// log.Println("Registering modules...")
-	// modules.RegisterModules(server.Engine(), eventHook)
-	// log.Println("All modules successfully registered!")
+	log.Println("Registering modules...")
+	modules.RegisterModules(i, server, eventHook)
+	log.Println("All modules successfully registered!")
 
 	providedServices := i.ListProvidedServices()
 	log.Printf("registered %d dependencies: %v", len(providedServices), providedServices)
@@ -64,7 +79,7 @@ func main() {
 }
 
 func createObjects(i *do.Injector) {
-	do.ProvideNamed[*webMiddleware.HandleCors](i, "HandleCorsMiddleware", func(i *do.Injector) (*webMiddleware.HandleCors, error) {
+	do.Provide[*webMiddleware.HandleCors](i, func(i *do.Injector) (*webMiddleware.HandleCors, error) {
 		return &webMiddleware.HandleCors{
 			AllowedOrigins:   []string{"http://localhost:3000"},
 			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -76,5 +91,39 @@ func createObjects(i *do.Injector) {
 	})
 	do.Provide[*middleware.MiddlewareGroup](i, func(i *do.Injector) (*middleware.MiddlewareGroup, error) {
 		return middleware.NewMiddlewareGroup(i), nil
+	})
+	do.Provide[*database.Manager](i, func(i *do.Injector) (*database.Manager, error) {
+		return database.NewManager(), nil
+	})
+	sessionMaxAge, err := strconv.Atoi(os.Getenv("SESSION_MAX_AGE"))
+	if err != nil {
+		sessionMaxAge = 86400
+	}
+	sessionConfig := sessions.SessionsConfig{
+		Name:           os.Getenv("SESSION_NAME"),
+		CsrfCookieName: os.Getenv("SESSION_CSRF_COOKIE_NAME"),
+		MaxAge:         sessionMaxAge,
+		Path:           os.Getenv("SESSION_PATH"),
+		Domain:         os.Getenv("SESSION_DOMAIN"),
+		Secure:         os.Getenv("SESSION_SECURE") == "true",
+	}
+	do.Provide[*sessions.CookieUtil](i, func(i *do.Injector) (*sessions.CookieUtil, error) {
+		return sessions.NewCookieUtil(sessionConfig), nil
+	})
+
+	do.Provide[*sessionsMiddleware.StartSession](i, func(i *do.Injector) (*sessionsMiddleware.StartSession, error) {
+		return sessionsMiddleware.NewStartSession(
+			sessionConfig,
+			do.MustInvoke[contracts.SessionStorage](i),
+			*(do.MustInvoke[*sessions.CookieUtil](i)),
+		), nil
+	})
+	do.Provide[*sessionsMiddleware.VerifyCSRFToken](i, func(i *do.Injector) (*sessionsMiddleware.VerifyCSRFToken, error) {
+		return sessionsMiddleware.NewVerifyCSRFToken(), nil
+	})
+	do.Provide[*auth.Service](i, func(i *do.Injector) (*auth.Service, error) {
+		return auth.NewService(
+			do.MustInvoke[contracts.SessionStorage](i),
+		), nil
 	})
 }

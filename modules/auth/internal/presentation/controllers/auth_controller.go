@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
 	commonErrors "bitbucket.org/dptsi/base-go-libraries/app/errors"
+	"bitbucket.org/dptsi/base-go-libraries/auth"
 	"bitbucket.org/dptsi/base-go-libraries/contracts"
 	"bitbucket.org/dptsi/base-go-libraries/entra"
 	"bitbucket.org/dptsi/base-go-libraries/myitssso"
@@ -21,16 +23,22 @@ const entraIDPrefix = "https://login.microsoftonline.com"
 
 type AuthController struct {
 	oidcClient     *oidc.Client
-	sessionStorage sessions.Storage
+	sessionStorage contracts.SessionStorage
+	authService    *auth.Service
+	cookieUtil     *sessions.CookieUtil
 }
 
 func NewAuthController(
 	oidcClient *oidc.Client,
-	sessionStorage sessions.Storage,
+	sessionStorage contracts.SessionStorage,
+	authService *auth.Service,
+	cookieUtil *sessions.CookieUtil,
 ) *AuthController {
 	return &AuthController{
 		oidcClient,
 		sessionStorage,
+		authService,
+		cookieUtil,
 	}
 }
 
@@ -85,7 +93,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 	}
 	if isBadRequest {
 		data := map[string]interface{}{}
-		if c.cfg.App().Env != "production" {
+		if os.Getenv("APP_DEBUG") != "true" {
 			data["hint"] = "Jika anda menggunakan Postman saat memanggil endpoint /auth/login, maka copy URL dari halaman ini dan buat request ke URL ini melalui Postman. Jika masih gagal, ulangi sekali lagi."
 		}
 		ctx.Error(commonErrors.NewBadRequest(commonErrors.BadRequestParam{
@@ -96,7 +104,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	if err := services.Login(ctx, user); err != nil {
+	if err := c.authService.Login(ctx, user); err != nil {
 		ctx.Error(err)
 		return
 	}
@@ -106,8 +114,9 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
+	c.cookieUtil.AddSessionCookieToResponse(ctx, sess)
 
-	frontendUrl := c.cfg.App().FrontendURL
+	frontendUrl := os.Getenv("APP_FRONTEND_URL")
 	if frontendUrl != "" {
 		ctx.Redirect(http.StatusFound, frontendUrl)
 		return
@@ -127,7 +136,7 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 // @Produce		json
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User{roles=[]responses.Role}} "Data user berhasil didapatkan"
 func (c *AuthController) User(ctx *gin.Context) {
-	u := services.User(ctx)
+	u := c.authService.User(ctx)
 	roles := make([]gin.H, 0)
 	for _, r := range u.Roles() {
 		roles = append(roles, gin.H{
@@ -180,14 +189,17 @@ func (c *AuthController) User(ctx *gin.Context) {
 // @Produce		json
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
 func (c *AuthController) Logout(ctx *gin.Context) {
-	cfg := c.moduleCfg.Oidc()
-	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(sessions.Default(ctx), cfg.PostLogoutRedirectURI)
+	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(
+		ctx,
+		sessions.Default(ctx),
+		os.Getenv("OIDC_POST_LOGOUT_REDIRECT_URI"),
+	)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 
-	err = services.Logout(ctx)
+	err = c.authService.Logout(ctx)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -195,11 +207,11 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	sess := sessions.Default(ctx)
 	sess.Invalidate()
 	sess.RegenerateCSRFToken()
-	if err := sess.Save(); err != nil {
+	if err := c.sessionStorage.Save(ctx, sess); err != nil {
 		ctx.Error(err)
 		return
 	}
-	session.AddCookieToResponse(c.cfg.Session(), ctx, sess.Id())
+	c.cookieUtil.AddSessionCookieToResponse(ctx, sess)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    statusCode[successMessage],
@@ -209,7 +221,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 }
 
 func (c *AuthController) isEntraID() bool {
-	return strings.HasPrefix(c.moduleCfg.Oidc().Provider, entraIDPrefix)
+	return strings.HasPrefix(os.Getenv("OIDC_PROVIDER"), entraIDPrefix)
 }
 
 type switchActiveRoleRequest struct {
@@ -229,7 +241,7 @@ type switchActiveRoleRequest struct {
 // @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "User tidak memiliki role tersebut"
 func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 	type request switchActiveRoleRequest
-	user := services.User(ctx)
+	user := c.authService.User(ctx)
 	var req request
 	if err := ctx.ShouldBind(&req); err != nil {
 		ctx.Error(err)
@@ -242,7 +254,7 @@ func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
 		}))
 		return
 	}
-	if err := services.Login(ctx, user); err != nil {
+	if err := c.authService.Login(ctx, user); err != nil {
 		ctx.Error(err)
 		return
 	}

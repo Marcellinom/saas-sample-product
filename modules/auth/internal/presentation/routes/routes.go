@@ -4,11 +4,14 @@ import (
 	"bitbucket.org/dptsi/base-go-libraries/auth/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	mg "its.ac.id/base-go/bootstrap/middleware"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 
 func RegisterRoutes(i *do.Injector, r *gin.Engine) {
+	middlewareGroup := do.MustInvoke[*mg.MiddlewareGroup](i)
 	g := r.Group("/auth")
+	g.Use(middlewareGroup.WebMiddleware()...)
 
 	// Controllers
 	authController := do.MustInvoke[*controllers.AuthController](i)
