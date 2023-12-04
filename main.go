@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/url"
 	"os"
 
 	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
 	"bitbucket.org/dptsi/base-go-libraries/web"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files" // swagger embed files
@@ -81,12 +83,18 @@ func main() {
 	log.Println("Setting up event hook...")
 	eventHook := event.SetupEventHook()
 	log.Println("Event hook successfully set up!")
+
+	log.Println("Registering dependencies...")
 	do.Provide[*event.EventHook](i, func(i *do.Injector) (*event.EventHook, error) {
 		return eventHook, nil
 	})
+	do.Provide[*gin.Engine](i, func(i *do.Injector) (*gin.Engine, error) {
+		return server, nil
+	})
 
 	log.Println("Registering modules...")
-	modules.RegisterModules(i, server, eventHook)
+	ctx := context.Background()
+	modules.RegisterModules(ctx, i)
 	log.Println("All modules successfully registered!")
 
 	providedServices := i.ListProvidedServices()

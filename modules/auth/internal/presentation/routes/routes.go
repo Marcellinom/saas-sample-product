@@ -8,8 +8,9 @@ import (
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 
-func RegisterRoutes(i *do.Injector, r *gin.Engine) {
+func RegisterRoutes(i *do.Injector) {
 	middlewareGroup := do.MustInvoke[*mg.MiddlewareGroup](i)
+	r := do.MustInvoke[*gin.Engine](i)
 	g := r.Group("/auth")
 	g.Use(middlewareGroup.WebMiddleware()...)
 

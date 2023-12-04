@@ -5,7 +5,6 @@ go 1.21.4
 require (
 	bitbucket.org/dptsi/base-go-libraries v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.9.1
-	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.5.1
 	github.com/mikestefanello/hooks v0.1.0
 	github.com/samber/do v1.6.0

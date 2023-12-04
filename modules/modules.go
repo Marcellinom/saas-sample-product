@@ -1,14 +1,12 @@
 package modules
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+
 	"github.com/samber/do"
-	"its.ac.id/base-go/bootstrap/event"
 	"its.ac.id/base-go/modules/auth"
 )
 
-func RegisterModules(i *do.Injector, g *gin.Engine, eventHook *event.EventHook) {
-	// register modules here
-	// e.g.:
-	auth.SetupModule(i, g, eventHook)
+func RegisterModules(ctx context.Context, i *do.Injector) {
+	auth.SetupModule(ctx, i)
 }
