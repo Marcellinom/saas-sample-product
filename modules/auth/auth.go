@@ -1,23 +1,15 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
-	"its.ac.id/base-go/bootstrap/event"
-	moduleConfig "its.ac.id/base-go/modules/auth/internal/app/config"
 	"its.ac.id/base-go/modules/auth/internal/app/providers"
 	"its.ac.id/base-go/modules/auth/internal/presentation/routes"
 )
 
-func SetupModule(i *do.Injector, g *gin.Engine, eventHook *event.EventHook) {
+func SetupModule(i *do.Injector) {
 	i = i.Clone()
 
-	moduleCfg, err := moduleConfig.SetupConfig()
-	if err != nil {
-		panic(err)
-	}
+	providers.RegisterDependencies(i)
 
-	providers.RegisterDependencies(i, moduleCfg, eventHook, g)
-
-	routes.RegisterRoutes(i, g)
+	routes.RegisterRoutes(i)
 }

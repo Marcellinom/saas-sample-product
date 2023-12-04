@@ -10,5 +10,5 @@ import (
 func RegisterModules(i *do.Injector, g *gin.Engine, eventHook *event.EventHook) {
 	// register modules here
 	// e.g.:
-	auth.SetupModule(i, g, eventHook)
+	auth.SetupModule(i)
 }
