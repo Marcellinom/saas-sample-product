@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -12,11 +14,15 @@ import (
 	sessionsMiddleware "bitbucket.org/dptsi/base-go-libraries/sessions/middleware"
 	"bitbucket.org/dptsi/base-go-libraries/web"
 	webMiddleware "bitbucket.org/dptsi/base-go-libraries/web/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
+	swaggerFiles "github.com/swaggo/files" // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"its.ac.id/base-go/bootstrap/config"
 	"its.ac.id/base-go/bootstrap/event"
 	"its.ac.id/base-go/bootstrap/middleware"
+	"its.ac.id/base-go/docs"
 	"its.ac.id/base-go/modules"
 )
 
@@ -52,6 +58,24 @@ func main() {
 		log.Panic(err)
 	}
 	log.Println("Web server successfully set up!")
+
+	// programmatically set swagger info
+	if os.Getenv("APP_ENV") == "local" {
+		log.Println("Local environment detected, setting up swagger...")
+		appUrlEnv := os.Getenv("APP_URL")
+		appURL, err := url.Parse(appUrlEnv)
+		if err != nil {
+			appURL, _ = url.Parse("http://localhost:8080")
+		}
+		docs.SwaggerInfo.Title = os.Getenv("APP_NAME")
+		// docs.SwaggerInfo.Version = r.cfg.App().Version
+		docs.SwaggerInfo.Host = appURL.Host
+		docs.SwaggerInfo.BasePath = ""
+		docs.SwaggerInfo.Schemes = []string{"http", "https"}
+		server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		log.Println("Swagger successfully set up!")
+	}
+	server.GET("/csrf-cookie", handleCSRFCookie)
 
 	log.Println("Setting up database...")
 	config.SetupDatabase(i)
@@ -125,5 +149,20 @@ func createObjects(i *do.Injector) {
 		return auth.NewService(
 			do.MustInvoke[contracts.SessionStorage](i),
 		), nil
+	})
+}
+
+// CSRF cookie godoc
+// @Summary		Rute dummy untuk set CSRF-TOKEN cookie
+// @Router		/csrf-cookie [get]
+// @Tags		CSRF Protection
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string} "Cookie berhasil diset"
+// @Header      default {string} Set-Cookie "CSRF-TOKEN=00000000-0000-0000-0000-000000000000; Path=/"
+func handleCSRFCookie(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    nil,
 	})
 }

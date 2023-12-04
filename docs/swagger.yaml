@@ -1,0 +1,208 @@
+definitions:
+  controllers.switchActiveRoleRequest:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  responses.GeneralResponse:
+    properties:
+      code:
+        example: 123
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+    type: object
+  responses.Role:
+    properties:
+      is_default:
+        type: boolean
+      name:
+        example: Mahasiswa
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    type: object
+  responses.User:
+    properties:
+      active_role:
+        example: Mahasiswa
+        type: string
+      email:
+        example: user@contoso.com
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
+      name:
+        example: John Doe
+        type: string
+      preferred_username:
+        example: user@contoso.com
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/responses.Role'
+        type: array
+    type: object
+externalDocs:
+  description: Dokumentasi Base Project
+  url: http://localhost:8080/doc/project
+info:
+  contact:
+    email: dptsi@its.ac.id
+    name: Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
+    url: http://its.ac.id/dptsi
+paths:
+  /auth/login:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Link login berhasil didapatkan
+          schema:
+            $ref: '#/definitions/responses.GeneralResponse'
+        "500":
+          description: Terjadi kesalahan saat menghubungi provider OpenID Connect
+          schema:
+            $ref: '#/definitions/responses.GeneralResponse'
+      security:
+      - CSRF Token: []
+      summary: Rute untuk mendapatkan link login melalui OpenID Connect
+      tags:
+      - Authentication & Authorization
+  /auth/logout:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout berhasil
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  type: string
+                message:
+                  type: string
+              type: object
+      security:
+      - Session: []
+      - CSRF Token: []
+      summary: Rute untuk logout
+      tags:
+      - Authentication & Authorization
+  /auth/user:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data user berhasil didapatkan
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  allOf:
+                  - $ref: '#/definitions/responses.User'
+                  - properties:
+                      roles:
+                        items:
+                          $ref: '#/definitions/responses.Role'
+                        type: array
+                    type: object
+                message:
+                  type: string
+              type: object
+      security:
+      - Session: []
+      summary: Rute untuk mendapatkan data user yang sedang login
+      tags:
+      - Authentication & Authorization
+  /auth/user/switch-active-role:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID role yang akan dijadikan active role
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.switchActiveRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Active role berhasil diubah
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  type: string
+                message:
+                  type: string
+              type: object
+        "400":
+          description: User tidak memiliki role tersebut
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                data:
+                  type: string
+                message:
+                  type: string
+              type: object
+      security:
+      - Session: []
+      - CSRF Token: []
+      summary: Rute untuk mengubah active role user
+      tags:
+      - Authentication & Authorization
+  /csrf-cookie:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cookie berhasil diset
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+              type: object
+      summary: Rute dummy untuk set CSRF-TOKEN cookie
+      tags:
+      - CSRF Protection
+securityDefinitions:
+  CSRF Token:
+    in: header
+    name: x-csrf-token
+    type: apiKey
+  Session:
+    in: cookie
+    name: akademik_its_ac_id_session
+    type: apiKey
+swagger: "2.0"
