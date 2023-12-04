@@ -233,40 +233,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/csrf-cookie": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CSRF Protection"
-                ],
-                "summary": "Rute dummy untuk set CSRF-TOKEN cookie",
-                "responses": {
-                    "200": {
-                        "description": "Cookie berhasil diset",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {

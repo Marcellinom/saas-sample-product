@@ -177,25 +177,6 @@ paths:
       summary: Rute untuk mengubah active role user
       tags:
       - Authentication & Authorization
-  /csrf-cookie:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Cookie berhasil diset
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                message:
-                  type: string
-              type: object
-      summary: Rute dummy untuk set CSRF-TOKEN cookie
-      tags:
-      - CSRF Protection
 securityDefinitions:
   CSRF Token:
     in: header
