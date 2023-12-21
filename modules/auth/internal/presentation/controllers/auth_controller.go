@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -53,7 +54,26 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
+// TODO: redirect oauth2 error ke frontend
 func (c *AuthController) Callback(ctx *gin.Context) {
+	var errorQueryParams struct {
+		Error            string `form:"error" json:"error" binding:"required"`
+		ErrorDescription string `form:"error_description" json:"error_description,omitempty"`
+		ErrorUri         string `form:"error_uri" json:"error_uri,omitempty"`
+		State            string `form:"state" json:"state" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindQuery(&errorQueryParams); err == nil {
+		serialized, err := json.Marshal(errorQueryParams)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		ctx.Error(fmt.Errorf("oauth2 error: %s", string(serialized)))
+		return
+	}
+
 	var queryParams struct {
 		Code  string `form:"code" binding:"required"`
 		State string `form:"state" binding:"required"`
