@@ -42,6 +42,7 @@ type resource struct {
 type userInfoRaw struct {
 	Sub                 string       `json:"sub"`
 	Name                string       `json:"name"`
+	Nickname            string       `json:"nickname"`
 	Email               string       `json:"email"`
 	EmailVerified       stringAsBool `json:"email_verified"`
 	Picture             string       `json:"picture"`
@@ -69,6 +70,7 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 
 	user := contracts.NewUser(userInfo.Sub)
 	user.SetName(userInfo.Name)
+	user.SetNickname(userInfo.Nickname)
 	user.SetPreferredUsername(userInfo.PreferredUsername)
 	user.SetEmail(userInfo.Email)
 	user.SetEmailVerified(bool(userInfo.EmailVerified))

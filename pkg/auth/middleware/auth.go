@@ -35,6 +35,7 @@ func Auth() gin.HandlerFunc {
 
 		u := contracts.NewUser(userData.Id)
 		u.SetName(userData.Name)
+		u.SetNickname(userData.Nickname)
 		u.SetEmail(userData.Email)
 		u.SetEmailVerified(bool(userData.EmailVerified))
 		u.SetPicture(userData.Picture)

@@ -17,6 +17,7 @@ func Login(ctx *gin.Context, u *contracts.User) error {
 		Id:                  strings.ToLower(u.Id()),
 		ActiveRole:          u.ActiveRole(),
 		Name:                u.Name(),
+		Nickname:            u.Nickname(),
 		PreferredUsername:   u.PreferredUsername(),
 		Email:               u.Email(),
 		EmailVerified:       u.EmailVerified(),

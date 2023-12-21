@@ -18,6 +18,7 @@ type Role struct {
 type User struct {
 	id                  string
 	name                string
+	nickname            string
 	preferred_username  string
 	email               string
 	emailVerified       bool
@@ -53,6 +54,14 @@ func (u *User) Name() string {
 
 func (u *User) SetName(name string) {
 	u.name = name
+}
+
+func (u *User) Nickname() string {
+	return u.nickname
+}
+
+func (u *User) SetNickname(nickname string) {
+	u.nickname = nickname
 }
 
 func (u *User) PreferredUsername() string {

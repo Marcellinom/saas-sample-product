@@ -157,6 +157,7 @@ func (c *AuthController) User(ctx *gin.Context) {
 	data := make(map[string]interface{})
 	data["id"] = u.Id()
 	data["name"] = nil
+	data["nickname"] = nil
 	data["email"] = nil
 	data["email_verified"] = u.EmailVerified()
 	data["preferred_username"] = nil
@@ -170,6 +171,9 @@ func (c *AuthController) User(ctx *gin.Context) {
 	data["active_role"] = nil
 	if u.Name() != "" {
 		data["name"] = u.Name()
+	}
+	if u.Nickname() != "" {
+		data["nickname"] = u.Nickname()
 	}
 	if u.Email() != "" {
 		data["email"] = u.Email()
