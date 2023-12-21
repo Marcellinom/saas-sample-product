@@ -40,14 +40,20 @@ type resource struct {
 }
 
 type userInfoRaw struct {
-	Sub               string       `json:"sub"`
-	Name              string       `json:"name"`
-	Email             string       `json:"email"`
-	EmailVerified     stringAsBool `json:"email_verified"`
-	Picture           string       `json:"picture"`
-	PreferredUsername string       `json:"preferred_username"`
-	Roles             []role       `json:"role"`
-	Resource          interface{}  `json:"resource"`
+	Sub                 string       `json:"sub"`
+	Name                string       `json:"name"`
+	Email               string       `json:"email"`
+	EmailVerified       stringAsBool `json:"email_verified"`
+	Picture             string       `json:"picture"`
+	PreferredUsername   string       `json:"preferred_username"`
+	Gender              string       `json:"gender"`
+	Birthdate           string       `json:"birthdate"`
+	Zoneinfo            string       `json:"zoneinfo"`
+	Locale              string       `json:"locale"`
+	PhoneNumber         string       `json:"phone_number"`
+	PhoneNumberVerified stringAsBool `json:"phone_number_verified"`
+	Roles               []role       `json:"role"`
+	Resource            interface{}  `json:"resource"`
 }
 
 func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, sess *session.Data, code string, state string) (*contracts.User, error) {
@@ -65,7 +71,14 @@ func GetUserFromAuthorizationCode(ctx *gin.Context, oidcClient *oidc.Client, ses
 	user.SetName(userInfo.Name)
 	user.SetPreferredUsername(userInfo.PreferredUsername)
 	user.SetEmail(userInfo.Email)
+	user.SetEmailVerified(bool(userInfo.EmailVerified))
 	user.SetPicture(userInfo.Picture)
+	user.SetGender(userInfo.Gender)
+	user.SetBirthdate(userInfo.Birthdate)
+	user.SetZoneinfo(userInfo.Zoneinfo)
+	user.SetLocale(userInfo.Locale)
+	user.SetPhoneNumber(userInfo.PhoneNumber)
+	user.SetPhoneNumberVerified(bool(userInfo.PhoneNumberVerified))
 	for _, r := range userInfo.Roles {
 		permissions := make([]string, 0)
 		userInfoResourceInterface, ok := userInfo.Resource.(map[string]interface{})

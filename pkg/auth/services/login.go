@@ -14,13 +14,20 @@ import (
 func Login(ctx *gin.Context, u *contracts.User) error {
 	sess := session.Default(ctx)
 	userData := internalContract.UserSessionData{
-		Id:                strings.ToLower(u.Id()),
-		ActiveRole:        u.ActiveRole(),
-		Name:              u.Name(),
-		PreferredUsername: u.PreferredUsername(),
-		Email:             u.Email(),
-		Picture:           u.Picture(),
-		Roles:             u.Roles(),
+		Id:                  strings.ToLower(u.Id()),
+		ActiveRole:          u.ActiveRole(),
+		Name:                u.Name(),
+		PreferredUsername:   u.PreferredUsername(),
+		Email:               u.Email(),
+		EmailVerified:       u.EmailVerified(),
+		Picture:             u.Picture(),
+		Gender:              u.Gender(),
+		Birthdate:           u.Birthdate(),
+		Zoneinfo:            u.Zoneinfo(),
+		Locale:              u.Locale(),
+		PhoneNumber:         u.PhoneNumber(),
+		PhoneNumberVerified: u.PhoneNumberVerified(),
+		Roles:               u.Roles(),
 	}
 	userJson, err := json.Marshal(userData)
 	if err != nil {

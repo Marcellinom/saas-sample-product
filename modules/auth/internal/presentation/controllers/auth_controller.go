@@ -138,8 +138,15 @@ func (c *AuthController) User(ctx *gin.Context) {
 	data["id"] = u.Id()
 	data["name"] = nil
 	data["email"] = nil
+	data["email_verified"] = u.EmailVerified()
 	data["preferred_username"] = nil
 	data["picture"] = nil
+	data["gender"] = nil
+	data["birthdate"] = nil
+	data["zoneinfo"] = nil
+	data["locale"] = nil
+	data["phone_number"] = nil
+	data["phone_number_verified"] = u.PhoneNumberVerified()
 	data["active_role"] = nil
 	if u.Name() != "" {
 		data["name"] = u.Name()
@@ -152,6 +159,21 @@ func (c *AuthController) User(ctx *gin.Context) {
 	}
 	if u.Picture() != "" {
 		data["picture"] = u.Picture()
+	}
+	if u.Gender() != "" {
+		data["gender"] = u.Gender()
+	}
+	if u.Birthdate() != "" {
+		data["birthdate"] = u.Birthdate()
+	}
+	if u.Zoneinfo() != "" {
+		data["zoneinfo"] = u.Zoneinfo()
+	}
+	if u.Locale() != "" {
+		data["locale"] = u.Locale()
+	}
+	if u.PhoneNumber() != "" {
+		data["phone_number"] = u.PhoneNumber()
 	}
 	if u.ActiveRole() != "" {
 		data["active_role"] = u.ActiveRole()

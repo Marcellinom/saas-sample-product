@@ -34,10 +34,17 @@ func Auth() gin.HandlerFunc {
 		}
 
 		u := contracts.NewUser(userData.Id)
-		u.SetEmail(userData.Email)
 		u.SetName(userData.Name)
-		u.SetPreferredUsername(userData.PreferredUsername)
+		u.SetEmail(userData.Email)
+		u.SetEmailVerified(bool(userData.EmailVerified))
 		u.SetPicture(userData.Picture)
+		u.SetGender(userData.Gender)
+		u.SetBirthdate(userData.Birthdate)
+		u.SetZoneinfo(userData.Zoneinfo)
+		u.SetLocale(userData.Locale)
+		u.SetPhoneNumber(userData.PhoneNumber)
+		u.SetPhoneNumberVerified(bool(userData.PhoneNumberVerified))
+		u.SetPreferredUsername(userData.PreferredUsername)
 		for _, role := range userData.Roles {
 			u.AddRole(role.Id, role.Name, role.Permissions, role.IsDefault)
 		}
