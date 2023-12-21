@@ -50,8 +50,8 @@ type userInfoRaw struct {
 	Birthdate           string       `json:"birthdate"`
 	Zoneinfo            string       `json:"zoneinfo"`
 	Locale              string       `json:"locale"`
-	PhoneNumber         string       `json:"phone_number"`
-	PhoneNumberVerified stringAsBool `json:"phone_number_verified"`
+	PhoneNumber         string       `json:"phone"`
+	PhoneNumberVerified stringAsBool `json:"phone_verified"`
 	Roles               []role       `json:"role"`
 	Resource            interface{}  `json:"resource"`
 }
