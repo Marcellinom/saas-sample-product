@@ -6,19 +6,21 @@ import (
 	"net/url"
 	"os"
 
-	sessionsMiddleware "bitbucket.org/dptsi/go-framework/sessions/middleware"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/database"
+	"bitbucket.org/dptsi/go-framework/sessions/storage"
 	"bitbucket.org/dptsi/go-framework/web"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files" // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"its.ac.id/base-go/bootstrap"
-	"its.ac.id/base-go/bootstrap/config"
-	"its.ac.id/base-go/bootstrap/event"
-	"its.ac.id/base-go/bootstrap/middleware"
+	"its.ac.id/base-go/config"
 	"its.ac.id/base-go/docs"
+	"its.ac.id/base-go/event"
+	"its.ac.id/base-go/middleware"
 	"its.ac.id/base-go/modules"
+	bootstrap "its.ac.id/base-go/providers"
 )
 
 // @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
@@ -70,14 +72,19 @@ func main() {
 		server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		log.Println("Swagger successfully set up!")
 	}
-	server.GET("/csrf-cookie", sessionsMiddleware.CSRFCookieRoute)
+	server.GET("/csrf-cookie", middleware.CSRFCookieRoute)
 
 	log.Println("Setting up database...")
-	config.SetupDatabase(i)
+	do.Provide[*database.Service](i, func(i *do.Injector) (*database.Service, error) {
+		return database.NewService(config.DatabasesConfig)
+	})
 	log.Println("Database successfully set up!")
 
 	log.Println("Setting up session...")
-	config.SetupSession(i)
+	do.Provide[contracts.SessionStorage](i, func(i *do.Injector) (contracts.SessionStorage, error) {
+		db := do.MustInvoke[*database.Service](i).GetDefault()
+		return storage.NewDatabase(db), nil
+	})
 	log.Println("Session successfully set up!")
 
 	log.Println("Setting up event hook...")

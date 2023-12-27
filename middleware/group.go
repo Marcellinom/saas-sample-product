@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	sessionsMiddleware "bitbucket.org/dptsi/go-framework/sessions/middleware"
-	"bitbucket.org/dptsi/go-framework/web/middleware"
+	"bitbucket.org/dptsi/go-framework/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -24,8 +23,8 @@ func (m *MiddlewareGroup) GlobalMiddleware() []gin.HandlerFunc {
 }
 
 func (m *MiddlewareGroup) WebMiddleware() []gin.HandlerFunc {
-	startSession := do.MustInvoke[*sessionsMiddleware.StartSession](m.i)
-	verifyCsrfToken := do.MustInvoke[*sessionsMiddleware.VerifyCSRFToken](m.i)
+	startSession := do.MustInvoke[*middleware.StartSession](m.i)
+	verifyCsrfToken := do.MustInvoke[*middleware.VerifyCSRFToken](m.i)
 	return []gin.HandlerFunc{
 		startSession.Execute,
 		verifyCsrfToken.Execute,
