@@ -34,16 +34,16 @@ definitions:
         example: Mahasiswa
         type: string
       email:
-        example: user@contoso.com
+        example: user@its.ac.id
         type: string
       id:
         example: 00000000-0000-0000-0000-000000000000
         type: string
       name:
-        example: John Doe
+        example: Mahasiswa ITS
         type: string
       preferred_username:
-        example: user@contoso.com
+        example: user@its.ac.id
         type: string
       roles:
         items:
@@ -177,6 +177,25 @@ paths:
       summary: Rute untuk mengubah active role user
       tags:
       - Authentication & Authorization
+  /csrf-cookie:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cookie berhasil diset
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.GeneralResponse'
+            - properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+              type: object
+      summary: Rute dummy untuk set CSRF-TOKEN cookie
+      tags:
+      - CSRF Protection
 securityDefinitions:
   CSRF Token:
     in: header
