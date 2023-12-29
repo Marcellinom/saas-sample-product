@@ -1,7 +1,11 @@
 package config
 
-var Config = map[string]interface{}{
-	"database": databasesConfig,
-	"sessions": sessionsConfig,
-	"web":      webConfig,
+func Config() map[string]interface{} {
+	return map[string]interface{}{
+		"cors":       corsConfig(),
+		"database":   databaseConfig(),
+		"middleware": middlewareConfig(),
+		"sessions":   sessionsConfig(),
+		"web":        webConfig(),
+	}
 }

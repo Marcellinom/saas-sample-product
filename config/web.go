@@ -6,7 +6,9 @@ import (
 	"bitbucket.org/dptsi/go-framework/web"
 )
 
-var webConfig = web.Config{
-	IsDebugMode: os.Getenv("APP_DEBUG") == "true",
-	Environment: os.Getenv("APP_ENV"),
+func webConfig() web.Config {
+	return web.Config{
+		IsDebugMode: os.Getenv("APP_DEBUG") == "true",
+		Environment: os.Getenv("APP_ENV"),
+	}
 }

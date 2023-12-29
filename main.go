@@ -4,16 +4,17 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sort"
 
 	"bitbucket.org/dptsi/go-framework/app"
 	"bitbucket.org/dptsi/go-framework/providers"
+	"bitbucket.org/dptsi/go-framework/web"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files" // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"its.ac.id/base-go/config"
 	"its.ac.id/base-go/docs"
-	"its.ac.id/base-go/middleware"
 )
 
 // @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
@@ -37,15 +38,16 @@ func main() {
 	log.Println("Environment variables successfully loaded!")
 
 	log.Println("Creating application instance...")
-	application := app.NewApplication(do.DefaultInjector, config.Config)
+	application := app.NewApplication(do.DefaultInjector, config.Config())
 	log.Println("Application instance successfully created!")
 
 	log.Println("Loading framework providers...")
-	providers.LoadProviders(application)
+	if err := providers.LoadProviders(application); err != nil {
+		panic(err)
+	}
 	log.Println("Framework providers loaded!")
 
-	// bootstrap.CreateObjects(i)
-	// server.Use(do.MustInvoke[*middleware.MiddlewareGroup](i).GlobalMiddleware()...)
+	engine := app.MustMake[*web.Engine](application, "web.engine")
 
 	// programmatically set swagger info
 	if os.Getenv("APP_ENV") == "local" {
@@ -60,10 +62,9 @@ func main() {
 		docs.SwaggerInfo.Host = appURL.Host
 		docs.SwaggerInfo.BasePath = ""
 		docs.SwaggerInfo.Schemes = []string{"http", "https"}
-		server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		log.Println("Swagger successfully set up!")
 	}
-	server.GET("/csrf-cookie", middleware.CSRFCookieRoute)
 
 	// log.Println("Setting up event hook...")
 	// eventHook := event.SetupEventHook()
@@ -74,7 +75,7 @@ func main() {
 	// 	return eventHook, nil
 	// })
 	// do.Provide[*gin.Engine](i, func(i *do.Injector) (*gin.Engine, error) {
-	// 	return server, nil
+	// 	return engine, nil
 	// })
 
 	// log.Println("Registering modules...")
@@ -82,8 +83,9 @@ func main() {
 	// modules.RegisterModules(ctx, i)
 	// log.Println("All modules successfully registered!")
 
-	providedServices := application.ListProvidedServices()
-	log.Printf("registered %d dependencies: %v", len(providedServices), providedServices)
+	services := application.ListProvidedServices()
+	sort.Strings(services)
+	log.Printf("registered %d dependencies: %v", len(services), services)
 
-	server.Run()
+	engine.Run()
 }
