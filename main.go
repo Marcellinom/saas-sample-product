@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"sort"
+	"strings"
 
 	"bitbucket.org/dptsi/go-framework/app"
 	"bitbucket.org/dptsi/go-framework/providers"
@@ -16,6 +19,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"its.ac.id/base-go/config"
 	"its.ac.id/base-go/docs"
+	appProviders "its.ac.id/base-go/providers"
 )
 
 // @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
@@ -39,7 +43,8 @@ func main() {
 	log.Println("Environment variables successfully loaded!")
 
 	log.Println("Creating application instance...")
-	application := app.NewApplication(do.DefaultInjector, config.Config())
+	ctx := context.Background()
+	application := app.NewApplication(ctx, do.DefaultInjector, config.Config())
 	log.Println("Application instance successfully created!")
 
 	log.Println("Loading framework providers...")
@@ -48,7 +53,13 @@ func main() {
 	}
 	log.Println("Framework providers loaded!")
 
-	engine := app.MustMake[*web.Engine](application, "web.engine")
+	services := application.Services()
+
+	log.Println("Loading modules...")
+	appProviders.RegisterModules(services.Module)
+	log.Println("Modules loaded!")
+
+	engine := services.WebEngine
 
 	// programmatically set swagger info
 	if os.Getenv("APP_ENV") == "local" {
@@ -72,9 +83,20 @@ func main() {
 	// modules.RegisterModules(ctx, i)
 	// log.Println("All modules successfully registered!")
 
-	services := application.ListProvidedServices()
-	sort.Strings(services)
-	log.Printf("registered %d dependencies: %v", len(services), services)
+	serviceList := application.ListProvidedServices()
+	sort.Strings(serviceList)
+	log.Printf(
+		"registered %d dependencies: \n%s",
+		len(serviceList),
+		strings.Join((func() []string {
+			arr := make([]string, len(serviceList))
+			for i, s := range serviceList {
+				arr[i] = fmt.Sprintf("- %s", s)
+			}
+
+			return arr
+		})(), "\n"),
+	)
 
 	engine.GET("/csrf-cookie", CSRFCookieRoute)
 	engine.Run()

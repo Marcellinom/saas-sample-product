@@ -1,24 +1,22 @@
 package providers
 
 import (
-	"context"
 	"os"
 	"strings"
 
-	"bitbucket.org/dptsi/go-framework/auth"
 	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/module"
 	"bitbucket.org/dptsi/go-framework/oidc"
-	"bitbucket.org/dptsi/go-framework/sessions"
-	"github.com/samber/do"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 
-func RegisterDependencies(ctx context.Context, i *do.Injector) {
+func RegisterDependencies(mod contracts.Module) {
 	// Libraries
-	do.Provide[*oidc.Client](i, func(i *do.Injector) (*oidc.Client, error) {
+	module.Bind[*oidc.Client](mod, "oidc_client", func(mod contracts.Module) (*oidc.Client, error) {
+		sessionsService := mod.App().Services().Session
 		return oidc.NewClient(
-			ctx,
-			do.MustInvoke[contracts.SessionStorage](i),
+			mod.App().Context(),
+			sessionsService,
 			os.Getenv("OIDC_PROVIDER"),
 			os.Getenv("OIDC_CLIENT_ID"),
 			os.Getenv("OIDC_CLIENT_SECRET"),
@@ -32,12 +30,14 @@ func RegisterDependencies(ctx context.Context, i *do.Injector) {
 	// Repositories
 
 	// Controllers
-	do.Provide[*controllers.AuthController](i, func(i *do.Injector) (*controllers.AuthController, error) {
+	module.Bind[*controllers.AuthController](mod, "controllers.auth", func(mod contracts.Module) (*controllers.AuthController, error) {
+		services := mod.App().Services()
+		oidcClient := module.MustMake[*oidc.Client](mod, "oidc_client", module.DependencyScopeModule)
+
 		return controllers.NewAuthController(
-			do.MustInvoke[*oidc.Client](i),
-			do.MustInvoke[contracts.SessionStorage](i),
-			do.MustInvoke[*auth.Service](i),
-			do.MustInvoke[*sessions.CookieUtil](i),
+			services.Session,
+			services.Auth,
+			oidcClient,
 		), nil
 	})
 }

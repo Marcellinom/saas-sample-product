@@ -10,35 +10,32 @@ import (
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
 	commonErrors "bitbucket.org/dptsi/go-framework/app/errors"
-	"bitbucket.org/dptsi/go-framework/auth"
 	"bitbucket.org/dptsi/go-framework/contracts"
 	"bitbucket.org/dptsi/go-framework/entra"
+	"bitbucket.org/dptsi/go-framework/models"
 	"bitbucket.org/dptsi/go-framework/myitssso"
 	"bitbucket.org/dptsi/go-framework/oidc"
-	"bitbucket.org/dptsi/go-framework/sessions"
+	"bitbucket.org/dptsi/go-framework/web"
 	"github.com/gin-gonic/gin"
 )
 
 const entraIDPrefix = "https://login.microsoftonline.com"
 
 type AuthController struct {
-	oidcClient     *oidc.Client
-	sessionStorage contracts.SessionStorage
-	authService    *auth.Service
-	cookieUtil     *sessions.CookieUtil
+	sessionsService contracts.SessionService
+	authService     contracts.AuthService
+	oidcClient      *oidc.Client
 }
 
 func NewAuthController(
+	sessionsService contracts.SessionService,
+	authService contracts.AuthService,
 	oidcClient *oidc.Client,
-	sessionStorage contracts.SessionStorage,
-	authService *auth.Service,
-	cookieUtil *sessions.CookieUtil,
 ) *AuthController {
 	return &AuthController{
-		oidcClient,
-		sessionStorage,
-		authService,
-		cookieUtil,
+		sessionsService: sessionsService,
+		authService:     authService,
+		oidcClient:      oidcClient,
 	}
 }
 
@@ -49,8 +46,8 @@ func NewAuthController(
 // @Security 	CSRF Token
 // @Success		200 {object} responses.GeneralResponse "Link login berhasil didapatkan"
 // @Failure		500 {object} responses.GeneralResponse "Terjadi kesalahan saat menghubungi provider OpenID Connect"
-func (c *AuthController) Login(ctx *gin.Context) {
-	url, err := c.oidcClient.RedirectURL(ctx, sessions.Default(ctx))
+func (c *AuthController) Login(ctx *web.Context) {
+	url, err := c.oidcClient.RedirectURL(ctx)
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to get login url: %w", err))
 		return
@@ -62,7 +59,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
-func (c *AuthController) Callback(ctx *gin.Context) {
+func (c *AuthController) Callback(ctx *web.Context) {
 	var queryParams struct {
 		Code  string `form:"code" binding:"required"`
 		State string `form:"state" binding:"required"`
@@ -73,13 +70,12 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	sess := sessions.Default(ctx)
-	var user *contracts.User
+	var user *models.User
 	var err error
 	if c.isEntraID() {
-		user, err = entra.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
+		user, err = entra.GetUserFromAuthorizationCode(ctx, c.oidcClient, queryParams.Code, queryParams.State)
 	} else {
-		user, err = myitssso.GetUserFromAuthorizationCode(ctx, c.oidcClient, sess, queryParams.Code, queryParams.State)
+		user, err = myitssso.GetUserFromAuthorizationCode(ctx, c.oidcClient, queryParams.Code, queryParams.State)
 	}
 
 	isBadRequest := errors.Is(err, oidc.ErrInvalidState) || errors.Is(err, oidc.ErrInvalidNonce) || errors.Is(err, oidc.ErrInvalidCodeChallenge)
@@ -108,13 +104,11 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	c.sessionStorage.Delete(ctx, sess.Id())
-	sess.RegenerateId()
-	if err := c.sessionStorage.Save(ctx, sess); err != nil {
+
+	if err := c.sessionsService.Regenerate(ctx); err != nil {
 		ctx.Error(err)
 		return
 	}
-	c.cookieUtil.AddSessionCookieToResponse(ctx, sess)
 
 	frontendUrl := os.Getenv("APP_FRONTEND_URL")
 	if frontendUrl != "" {
@@ -135,10 +129,14 @@ func (c *AuthController) Callback(ctx *gin.Context) {
 // @Security	Session
 // @Produce		json
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=responses.User{roles=[]responses.Role}} "Data user berhasil didapatkan"
-func (c *AuthController) User(ctx *gin.Context) {
-	u := c.authService.User(ctx)
+func (c *AuthController) User(ctx *web.Context) {
+	user, err := c.authService.User(ctx)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 	roles := make([]gin.H, 0)
-	for _, r := range u.Roles() {
+	for _, r := range user.Roles() {
 		roles = append(roles, gin.H{
 			"id":          r.Id,
 			"name":        r.Name,
@@ -148,29 +146,29 @@ func (c *AuthController) User(ctx *gin.Context) {
 	}
 
 	data := make(map[string]interface{})
-	data["id"] = u.Id()
+	data["id"] = user.Id()
 	data["name"] = nil
 	data["email"] = nil
 	data["preferred_username"] = nil
 	data["picture"] = nil
 	data["active_role"] = nil
-	if u.Name() != "" {
-		data["name"] = u.Name()
+	if user.Name() != "" {
+		data["name"] = user.Name()
 	}
-	if u.Email() != "" {
-		data["email"] = u.Email()
+	if user.Email() != "" {
+		data["email"] = user.Email()
 	}
-	if u.PreferredUsername() != "" {
-		data["preferred_username"] = u.PreferredUsername()
+	if user.PreferredUsername() != "" {
+		data["preferred_username"] = user.PreferredUsername()
 	}
-	if u.Picture() != "" {
-		data["picture"] = u.Picture()
+	if user.Picture() != "" {
+		data["picture"] = user.Picture()
 	}
-	if u.ActiveRole() != "" {
-		data["active_role"] = u.ActiveRole()
+	if user.ActiveRole() != "" {
+		data["active_role"] = user.ActiveRole()
 	}
-	if u.ActiveRoleName() != "" {
-		data["active_role_name"] = u.ActiveRoleName()
+	if user.ActiveRoleName() != "" {
+		data["active_role_name"] = user.ActiveRoleName()
 	}
 	data["roles"] = roles
 
@@ -188,10 +186,9 @@ func (c *AuthController) User(ctx *gin.Context) {
 // @Security	CSRF Token
 // @Produce		json
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Logout berhasil"
-func (c *AuthController) Logout(ctx *gin.Context) {
+func (c *AuthController) Logout(ctx *web.Context) {
 	endSessionEndpoint, err := c.oidcClient.RPInitiatedLogout(
 		ctx,
-		sessions.Default(ctx),
 		os.Getenv("OIDC_POST_LOGOUT_REDIRECT_URI"),
 	)
 	if err != nil {
@@ -204,14 +201,14 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	sess := sessions.Default(ctx)
-	sess.Invalidate()
-	sess.RegenerateCSRFToken()
-	if err := c.sessionStorage.Save(ctx, sess); err != nil {
+	if err := c.sessionsService.Invalidate(ctx); err != nil {
 		ctx.Error(err)
 		return
 	}
-	c.cookieUtil.AddSessionCookieToResponse(ctx, sess)
+	if err := c.sessionsService.RegenerateToken(ctx); err != nil {
+		ctx.Error(err)
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    statusCode[successMessage],
@@ -239,9 +236,13 @@ type switchActiveRoleRequest struct {
 // @Success		200 {object} responses.GeneralResponse{code=int,message=string,data=string} "Active role berhasil diubah"
 // @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "Missing role"
 // @Failure		400 {object} responses.GeneralResponse{code=int,message=string,data=string} "User tidak memiliki role tersebut"
-func (c *AuthController) SwitchActiveRole(ctx *gin.Context) {
+func (c *AuthController) SwitchActiveRole(ctx *web.Context) {
 	type request switchActiveRoleRequest
-	user := c.authService.User(ctx)
+	user, err := c.authService.User(ctx)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 	var req request
 	if err := ctx.ShouldBind(&req); err != nil {
 		ctx.Error(err)

@@ -1,26 +1,25 @@
 package routes
 
 import (
-	"bitbucket.org/dptsi/go-framework/auth/middleware"
-	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
-	mg "its.ac.id/base-go/bootstrap/middleware"
+	"bitbucket.org/dptsi/go-framework/contracts"
+	"bitbucket.org/dptsi/go-framework/module"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 
-func RegisterRoutes(i *do.Injector) {
-	middlewareGroup := do.MustInvoke[*mg.MiddlewareGroup](i)
-	r := do.MustInvoke[*gin.Engine](i)
-	g := r.Group("/auth")
-	g.Use(middlewareGroup.WebMiddleware()...)
+func RegisterRoutes(mod contracts.Module) {
+	engine := mod.App().Services().WebEngine
+	middlewareService := mod.App().Services().Middleware
+
+	// Routing
+	g := engine.Group("/auth")
 
 	// Controllers
-	authController := do.MustInvoke[*controllers.AuthController](i)
+	authController := module.MustMake[*controllers.AuthController](mod, "controllers.auth", module.DependencyScopeModule)
 
 	// Routes
 	g.POST("/login", authController.Login)
 	g.GET("/callback", authController.Callback)
-	g.GET("/user", middleware.Auth(), authController.User)
-	g.DELETE("/logout", middleware.Auth(), authController.Logout)
-	g.POST("/user/switch-active-role", middleware.Auth(), authController.SwitchActiveRole)
+	g.GET("/user", middlewareService.Use("auth", nil), authController.User)
+	g.DELETE("/logout", middlewareService.Use("auth", nil), authController.Logout)
+	g.POST("/user/switch-active-role", middlewareService.Use("auth", nil), authController.SwitchActiveRole)
 }
