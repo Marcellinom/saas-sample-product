@@ -67,18 +67,6 @@ func main() {
 		log.Println("Swagger successfully set up!")
 	}
 
-	// log.Println("Setting up event hook...")
-	// eventHook := event.SetupEventHook()
-	// log.Println("Event hook successfully set up!")
-
-	// log.Println("Registering dependencies...")
-	// do.Provide[*event.EventHook](i, func(i *do.Injector) (*event.EventHook, error) {
-	// 	return eventHook, nil
-	// })
-	// do.Provide[*gin.Engine](i, func(i *do.Injector) (*gin.Engine, error) {
-	// 	return engine, nil
-	// })
-
 	// log.Println("Registering modules...")
 	// ctx := context.Background()
 	// modules.RegisterModules(ctx, i)
