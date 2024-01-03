@@ -16,7 +16,6 @@ import (
 	"bitbucket.org/dptsi/go-framework/myitssso"
 	"bitbucket.org/dptsi/go-framework/oidc"
 	"bitbucket.org/dptsi/go-framework/web"
-	"github.com/gin-gonic/gin"
 )
 
 const entraIDPrefix = "https://login.microsoftonline.com"
@@ -116,7 +115,7 @@ func (c *AuthController) Callback(ctx *web.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusOK, web.H{
 		"code":    statusCode[successMessage],
 		"message": successMessage,
 		"data":    nil,
@@ -135,9 +134,9 @@ func (c *AuthController) User(ctx *web.Context) {
 		ctx.Error(err)
 		return
 	}
-	roles := make([]gin.H, 0)
+	roles := make([]web.H, 0)
 	for _, r := range user.Roles() {
-		roles = append(roles, gin.H{
+		roles = append(roles, web.H{
 			"id":          r.Id,
 			"name":        r.Name,
 			"permissions": r.Permissions,
@@ -210,7 +209,7 @@ func (c *AuthController) Logout(ctx *web.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusOK, web.H{
 		"code":    statusCode[successMessage],
 		"message": successMessage,
 		"data":    endSessionEndpoint,
