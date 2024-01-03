@@ -89,7 +89,7 @@ func (c *AuthController) Callback(ctx *web.Context) {
 	}
 	if isBadRequest {
 		data := map[string]interface{}{}
-		if os.Getenv("APP_DEBUG") != "true" {
+		if os.Getenv("APP_DEBUG") == "true" {
 			data["hint"] = "Jika anda menggunakan Postman saat memanggil endpoint /auth/login, maka copy URL dari halaman ini dan buat request ke URL ini melalui Postman. Jika masih gagal, ulangi sekali lagi."
 		}
 		ctx.Error(commonErrors.NewBadRequest(commonErrors.BadRequestParam{
