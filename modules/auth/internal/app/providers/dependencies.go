@@ -4,9 +4,9 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/dptsi/go-framework/contracts"
-	"bitbucket.org/dptsi/go-framework/module"
-	"bitbucket.org/dptsi/go-framework/oidc"
+	"bitbucket.org/dptsi/its-go/contracts"
+	"bitbucket.org/dptsi/its-go/module"
+	"bitbucket.org/dptsi/its-go/oidc"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 

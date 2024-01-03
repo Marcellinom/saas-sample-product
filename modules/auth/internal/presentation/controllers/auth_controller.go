@@ -9,13 +9,13 @@ import (
 
 	"its.ac.id/base-go/modules/auth/internal/presentation/responses"
 
-	commonErrors "bitbucket.org/dptsi/go-framework/app/errors"
-	"bitbucket.org/dptsi/go-framework/contracts"
-	"bitbucket.org/dptsi/go-framework/entra"
-	"bitbucket.org/dptsi/go-framework/models"
-	"bitbucket.org/dptsi/go-framework/myitssso"
-	"bitbucket.org/dptsi/go-framework/oidc"
-	"bitbucket.org/dptsi/go-framework/web"
+	commonErrors "bitbucket.org/dptsi/its-go/app/errors"
+	"bitbucket.org/dptsi/its-go/contracts"
+	"bitbucket.org/dptsi/its-go/entra"
+	"bitbucket.org/dptsi/its-go/models"
+	"bitbucket.org/dptsi/its-go/myitssso"
+	"bitbucket.org/dptsi/its-go/oidc"
+	"bitbucket.org/dptsi/its-go/web"
 )
 
 const entraIDPrefix = "https://login.microsoftonline.com"

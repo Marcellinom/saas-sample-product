@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"bitbucket.org/dptsi/go-framework/web"
+	"bitbucket.org/dptsi/its-go/web"
 )
 
 func webConfig() web.Config {

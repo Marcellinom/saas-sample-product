@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"bitbucket.org/dptsi/go-framework/app"
-	"bitbucket.org/dptsi/go-framework/providers"
-	"bitbucket.org/dptsi/go-framework/web"
+	"bitbucket.org/dptsi/its-go/app"
+	"bitbucket.org/dptsi/its-go/providers"
+	"bitbucket.org/dptsi/its-go/web"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files" // swagger embed files

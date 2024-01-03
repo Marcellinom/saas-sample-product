@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"bitbucket.org/dptsi/go-framework/database"
+	"bitbucket.org/dptsi/its-go/database"
 )
 
 func databaseConfig() database.Config {

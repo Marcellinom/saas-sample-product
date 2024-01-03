@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"bitbucket.org/dptsi/go-framework/contracts"
-	"bitbucket.org/dptsi/go-framework/module"
+	"bitbucket.org/dptsi/its-go/contracts"
+	"bitbucket.org/dptsi/its-go/module"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 

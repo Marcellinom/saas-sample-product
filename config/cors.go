@@ -1,6 +1,6 @@
 package config
 
-import "bitbucket.org/dptsi/go-framework/http"
+import "bitbucket.org/dptsi/its-go/http"
 
 func corsConfig() http.CorsConfig {
 	return http.CorsConfig{
