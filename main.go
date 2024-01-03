@@ -99,7 +99,8 @@ func main() {
 	)
 
 	engine.GET("/csrf-cookie", CSRFCookieRoute)
-	engine.Run()
+	webConfig := config.Config()["web"].(web.Config)
+	engine.Run(fmt.Sprintf("0.0.0.0:%s", webConfig.Port))
 }
 
 // CSRF cookie godoc
