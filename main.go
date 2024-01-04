@@ -29,6 +29,7 @@ import (
 // @securityDefinitions.apikey	CSRF Token
 // @in							header
 // @name						x-csrf-token
+// @description 				CSRF token yang didapatkan dari browser -> inspect element -> application -> storage -> cookies -> CSRF-TOKEN (Untuk firefox, storage berada pada tab tersendiri)
 
 // @externalDocs.description  Dokumentasi Base Project
 // @externalDocs.url          http://localhost:8080/doc/project

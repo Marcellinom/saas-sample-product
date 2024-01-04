@@ -244,6 +244,7 @@
     },
     "securityDefinitions": {
         "CSRF Token": {
+            "description": "CSRF token yang didapatkan dari browser -\u003e inspect element -\u003e application -\u003e storage -\u003e cookies -\u003e CSRF-TOKEN (Untuk firefox, storage berada pada tab tersendiri)",
             "type": "apiKey",
             "name": "x-csrf-token",
             "in": "header"
