@@ -60,6 +60,7 @@ func main() {
 	log.Println("Application providers loaded!")
 
 	engine := services.WebEngine
+	engine.GET("/csrf-cookie", CSRFCookieRoute)
 
 	// programmatically set swagger info
 	if os.Getenv("APP_ENV") == "local" {
@@ -78,27 +79,23 @@ func main() {
 		log.Println("Swagger successfully set up!")
 	}
 
-	// log.Println("Registering modules...")
-	// ctx := context.Background()
-	// modules.RegisterModules(ctx, i)
-	// log.Println("All modules successfully registered!")
+	if os.Getenv("APP_DEBUG") == "true" {
+		serviceList := application.ListProvidedServices()
+		sort.Strings(serviceList)
+		log.Printf(
+			"registered %d dependencies: \n%s",
+			len(serviceList),
+			strings.Join((func() []string {
+				arr := make([]string, len(serviceList))
+				for i, s := range serviceList {
+					arr[i] = fmt.Sprintf("- %s", s)
+				}
 
-	serviceList := application.ListProvidedServices()
-	sort.Strings(serviceList)
-	log.Printf(
-		"registered %d dependencies: \n%s",
-		len(serviceList),
-		strings.Join((func() []string {
-			arr := make([]string, len(serviceList))
-			for i, s := range serviceList {
-				arr[i] = fmt.Sprintf("- %s", s)
-			}
+				return arr
+			})(), "\n"),
+		)
+	}
 
-			return arr
-		})(), "\n"),
-	)
-
-	engine.GET("/csrf-cookie", CSRFCookieRoute)
 	webConfig := config.Config()["web"].(web.Config)
 	engine.Run(fmt.Sprintf("0.0.0.0:%s", webConfig.Port))
 }
