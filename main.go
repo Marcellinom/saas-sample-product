@@ -55,9 +55,9 @@ func main() {
 
 	services := application.Services()
 
-	log.Println("Loading modules...")
-	appProviders.RegisterModules(services.Module)
-	log.Println("Modules loaded!")
+	log.Println("Loading application providers...")
+	appProviders.LoadAppProviders(application)
+	log.Println("Application providers loaded!")
 
 	engine := services.WebEngine
 
