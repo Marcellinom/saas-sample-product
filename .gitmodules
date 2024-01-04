@@ -1,0 +1,3 @@
+[submodule "modules/auth"]
+	path = modules/auth
+	url = git@bitbucket.org:dptsi/go-auth-module.git
