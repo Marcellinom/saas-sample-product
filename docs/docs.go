@@ -258,11 +258,6 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "x-csrf-token",
             "in": "header"
-        },
-        "Session": {
-            "type": "apiKey",
-            "name": "akademik_its_ac_id_session",
-            "in": "cookie"
         }
     },
     "externalDocs": {

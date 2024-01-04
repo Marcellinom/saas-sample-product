@@ -1,6 +1,12 @@
 package config
 
-import "github.com/dptsi/its-go/sessions"
+import (
+	"fmt"
+	"os"
+
+	"github.com/dptsi/its-go/sessions"
+	"github.com/stoewer/go-strcase"
+)
 
 func sessionsConfig() sessions.Config {
 	return sessions.Config{
@@ -8,7 +14,7 @@ func sessionsConfig() sessions.Config {
 		Connection: "default",
 		Table:      "sessions",
 		Cookie: sessions.CookieConfig{
-			Name:           "myits_academics_session",
+			Name:           fmt.Sprintf("%s_session", strcase.SnakeCase(os.Getenv("APP_NAME"))),
 			CsrfCookieName: "CSRF-TOKEN",
 			Path:           "/",
 			Domain:         "",

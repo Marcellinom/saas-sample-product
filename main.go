@@ -26,9 +26,6 @@ import (
 // @contact.url    http://its.ac.id/dptsi
 // @contact.email  dptsi@its.ac.id
 
-// @securityDefinitions.apikey	Session
-// @in							cookie
-// @name						akademik_its_ac_id_session
 // @securityDefinitions.apikey	CSRF Token
 // @in							header
 // @name						x-csrf-token

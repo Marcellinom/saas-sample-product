@@ -149,8 +149,4 @@ securityDefinitions:
     in: header
     name: x-csrf-token
     type: apiKey
-  Session:
-    in: cookie
-    name: akademik_its_ac_id_session
-    type: apiKey
 swagger: "2.0"
