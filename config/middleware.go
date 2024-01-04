@@ -1,6 +1,6 @@
 package config
 
-import "bitbucket.org/dptsi/its-go/http/middleware"
+import "github.com/dptsi/its-go/http/middleware"
 
 func middlewareConfig() middleware.Config {
 	return middleware.Config{

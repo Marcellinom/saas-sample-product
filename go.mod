@@ -3,7 +3,6 @@ module its.ac.id/base-go
 go 1.21.4
 
 require (
-	bitbucket.org/dptsi/its-go v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
 	github.com/swaggo/files v1.0.1
@@ -17,6 +16,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/coreos/go-oidc/v3 v3.9.0 // indirect
+	github.com/dptsi/its-go v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/cors v1.5.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -70,5 +70,3 @@ require (
 	gorm.io/driver/sqlserver v1.5.2 // indirect
 	gorm.io/gorm v1.25.5 // indirect
 )
-
-replace bitbucket.org/dptsi/its-go => ../its-go

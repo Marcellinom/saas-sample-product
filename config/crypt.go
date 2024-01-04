@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"bitbucket.org/dptsi/its-go/crypt"
+	"github.com/dptsi/its-go/crypt"
 )
 
 func cryptConfig() crypt.Config {

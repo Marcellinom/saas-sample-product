@@ -1,6 +1,6 @@
 package providers
 
-import "bitbucket.org/dptsi/its-go/contracts"
+import "github.com/dptsi/its-go/contracts"
 
 func LoadAppProviders(application contracts.Application) {
 	services := application.Services()

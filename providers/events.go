@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"bitbucket.org/dptsi/its-go/contracts"
+	"github.com/dptsi/its-go/contracts"
 )
 
 type Listener struct {

@@ -1,6 +1,6 @@
 package config
 
-import "bitbucket.org/dptsi/its-go/sessions"
+import "github.com/dptsi/its-go/sessions"
 
 func sessionsConfig() sessions.Config {
 	return sessions.Config{
