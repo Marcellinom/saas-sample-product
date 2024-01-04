@@ -1,8 +1,8 @@
 package routes
 
 import (
+	"bitbucket.org/dptsi/its-go/app"
 	"bitbucket.org/dptsi/its-go/contracts"
-	"bitbucket.org/dptsi/its-go/module"
 	"its.ac.id/base-go/modules/auth/internal/presentation/controllers"
 )
 
@@ -14,7 +14,7 @@ func RegisterRoutes(mod contracts.Module) {
 	g := engine.Group("/auth")
 
 	// Controllers
-	authController := module.MustMake[*controllers.AuthController](mod, "controllers.auth", module.DependencyScopeModule)
+	authController := app.MustMake[*controllers.AuthController](mod.App(), "modules.auth.controllers.auth")
 
 	// Routes
 	g.POST("/login", authController.Login)
