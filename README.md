@@ -8,14 +8,6 @@ Aplikasi web menggunakan framework [ITS Go](https://github.com/dptsi/its-go) yan
 
 ## Getting Started
 
-### Clone Repository
-
-Repository ini menggunakan git submodules sehingga terdapat sedikit perbedaan pada cara clone pada umumnya. Perbedaan tersebut berupa adanya argumen `--recurse-submodules`:
-
-```bash
-git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
-```
-
 ### Dependencies
 
 - Disarankan menggunakan WSL2 dengan distro Ubuntu 22.04
@@ -23,8 +15,13 @@ git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
 
 ### Installing
 
-- How/where to download your program
-- Any modifications needed to be made to files/folders
+1. Clone repository
+
+   Repository ini menggunakan git submodules sehingga terdapat sedikit perbedaan pada cara clone pada umumnya. Perbedaan tersebut berupa adanya argumen `--recurse-submodules`:
+
+   ```bash
+   git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
+   ```
 
 ### Executing program
 
@@ -48,7 +45,6 @@ git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
    go run script/script.go key:generate
    ```
 4. Atur konfigurasi koneksi database default
-
    ```bash
    DB_DRIVER=
    DB_HOST=
@@ -56,7 +52,6 @@ git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
    DB_DATABASE=
    DB_USER=
    DB_PASSWORD=
-
    # Jika belum ada database dan ingin mencoba2 dapat menggunakan driver sqlite
    DB_DRIVER=sqlite
    DB_HOST=
@@ -65,17 +60,13 @@ git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
    DB_USER=
    DB_PASSWORD=
    ```
-
 5. Jalankan server.
-
    ```bash
    # Menjalankan server pada port 8080 (secara default)
    go run main.go
-
    # Menjalankan server pada port lain
    PORT=1111 go run main.go
    ```
-
 6. Dokumentasi API dapat diakses melalui `/swagger/index.html` (Pastikan `APP_ENV` bernilai `local`).
 
 ## Help
