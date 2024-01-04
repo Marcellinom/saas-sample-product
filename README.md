@@ -1,206 +1,142 @@
-<a name="readme-top"></a>
+# Project Title
 
-<!-- [![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url] -->
+Base Project Go
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/zydhanlinnar11/base-go">
-    <img src="https://go.dev/images/go-logo-white.svg" alt="Logo" width="80" height="80">
-  </a>
+## Description
 
-  <h3 align="center">Base Project Golang</h3>
+Aplikasi web menggunakan framework [ITS Go](https://github.com/dptsi/its-go) yang dapat digunakan sebagai rujukan atau basis pengembangan aplikasi web yang lain.
 
-  <p align="center">
-    Base project untuk pengembangan back-end menggunakan Go
-    <br />
-    <a href="https://github.com/zydhanlinnar11/base-go"><strong>Eksplor Dokumentasi »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/zydhanlinnar11/base-go">Lihat Demo</a>
-    ·
-    <a href="https://github.com/zydhanlinnar11/base-go/issues">Laporkan Bug</a>
-    ·
-    <a href="https://github.com/zydhanlinnar11/base-go/issues">Request Fitur</a>
-  </p>
-</div>
+## Getting Started
 
-<!-- TABLE OF CONTENTS
-<details>
-  <summary>Daftar Isi</summary>
-  <ol>
-    <li>
-      <a href="#tentang-project">Tentang Project</a>
-      <ul>
-        <li><a href="#dibangun-dengan">Dibangun Dengan</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#memulai">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details> -->
+### Clone Repository
 
-<!-- ABOUT THE PROJECT -->
+Repository ini menggunakan git submodules sehingga terdapat sedikit perbedaan pada cara clone pada umumnya. Perbedaan tersebut berupa adanya argumen `--recurse-submodules`:
 
-## Tentang Project
+```bash
+git clone --recurse-submodules git@bitbucket.org:dptsi/base-go.git
+```
 
-<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
+### Dependencies
 
-TBD
+- Disarankan menggunakan WSL2 dengan distro Ubuntu 22.04
+- [Go](https://go.dev/doc/install)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+### Installing
 
-### Dibangun Dengan
+- How/where to download your program
+- Any modifications needed to be made to files/folders
 
-- [![Go][Go]][Go-url]
+### Executing program
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- GETTING STARTED -->
-
-## Memulai
-
-### Prasyarat
-
-- Go ([Link download dan install Go](https://go.dev/doc/install))
-
-### Menjalankan Aplikasi
-
-1. Clone repositori
-
+1. Copy .env.example ke .env
    ```bash
-   // Menggunakan SSH
-   git clone git@github.com:zydhanlinnar11/base-go.git
-
-   // Menggunakan HTTPS
-   git clone https://github.com/zydhanlinnar11/base-go.git
+   cp .env.example .env
    ```
-
-2. Copy .env.example ke .env
-
+2. Set up environment variable untuk OpenID Connect (Bisa didapatkan dari Secman)
    ```bash
-   cp .env .env.example
-   ```
-
-3. Set up environment variable untuk OpenID Connect (Bisa didapatkan dari Secman)
-
-   ```bash
+   # Dapat dari Secman
    OIDC_PROVIDER=
    OIDC_CLIENT_ID=
    OIDC_CLIENT_SECRET=
    OIDC_REDIRECT_URL=
-   OIDC_SCOPES=
-   OIDC_END_SESSION_ENDPOINT=
    OIDC_POST_LOGOUT_REDIRECT_URI=
+   # Scope minimal yang diperlukan adalah "openid email profile resource role"
+   OIDC_SCOPES="openid email profile resource role"
    ```
-
-4. Jalankan server pada port 8080
+3. Generate key
    ```bash
-   go run main.go
+   go run script/script.go key:generate
+   ```
+4. Atur konfigurasi koneksi database default
+
+   ```bash
+   DB_DRIVER=
+   DB_HOST=
+   DB_PORT=
+   DB_DATABASE=
+   DB_USER=
+   DB_PASSWORD=
+
+   # Jika belum ada database dan ingin mencoba2 dapat menggunakan driver sqlite
+   DB_DRIVER=sqlite
+   DB_HOST=
+   DB_PORT=
+   DB_DATABASE=./db.sqlite # File ini akan dibuat secara otomatis
+   DB_USER=
+   DB_PASSWORD=
    ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+5. Jalankan server.
 
-<!-- USAGE EXAMPLES -->
+   ```bash
+   # Menjalankan server pada port 8080 (secara default)
+   go run main.go
 
-## Penggunaan
+   # Menjalankan server pada port lain
+   PORT=1111 go run main.go
+   ```
 
-> Pastikan server sudah berjalan saat mengakses dokumentasi!
+6. Dokumentasi API dapat diakses melalui `/swagger/index.html` (Pastikan `APP_ENV` bernilai `local`).
 
-_Penjelasan lebih lengkap terdapat pada [/doc/project](http://localhost:8080/doc/project) (Dokumentasi project) dan [/doc/api](http://localhost:8080/doc/api) (Dokumentasi OpenAPI 3.1)_
+## Help
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+1. Jika mendapatkan error `no such table: sessions`,
 
-<!-- ROADMAP -->
+   ```json
+   {
+     "code": 9005,
+     "data": {
+       "error": "no such table: sessions",
+       "request_id": "4d7fc0dd-2ae9-4a71-9512-6512398c8e19"
+     },
+     "message": "internal_server_error"
+   }
+   ```
 
-## Roadmap
+   maka pastikan terdapat tabel database untuk menyimpan session sesuai konfigurasi `config/sessions.go` (secara default, framework akan membaca dari tabel sessions). Jika tidak ada, maka perlu tabel dengan struktur berikut:
 
-- [x] Dependency Injection
-- [x] Routing menggunakan Gin
-- [x] Delegasi config setiap modul
-- [x] Session
-- [x] Autentikasi menggunakan session
-- [x] Autentikasi menggunakan Basic Auth header
-- [x] CSRF Protection
-- [x] Common error & response
-- [x] OpenID Connect
-- [x] Script make controller & module
-- [x] Dokumentasi project
-- [x] Dokumentasi OpenAPI 3.1
+   ```text
+   id          -> text
+   data        -> text
+   expired_at  -> timestamp
+   csrf_token  -> text
+   ```
 
-<!-- See the [open issues](https://github.com/zydhanlinnar11/base-go/issues) for a full list of proposed features (and known issues). -->
+   Namun **jika administrator database mengizinkan aplikasi untuk memigrasikan tabel session sendiri**, maka cukup aktifkan auto migration pada `config/sessions.go`.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+   ```go
+   package config
 
-<!-- CONTRIBUTING -->
+   import "github.com/dptsi/its-go/sessions"
 
-<!-- ## Contributing
+   func sessionsConfig() sessions.Config {
+   	return sessions.Config{
+   		Storage:    "database",
+   		Connection: "default",
+   		Table:      "sessions",
+   		Cookie: sessions.CookieConfig{
+   			Name:           "myits_academics_session",
+   			CsrfCookieName: "CSRF-TOKEN",
+   			Path:           "/",
+   			Domain:         "",
+   			Secure:         false,
+   			Lifetime:       60,
+   		},
+   		AutoMigrate: true, // tambahkan line ini
+   	}
+   }
+   ```
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+## Authors
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+- [@zydhanlinnar11](https://github.com/zydhanlinnar11)
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## License
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+This project is licensed under the MIT License - see the [LICENSE file](./LICENSE) for details
 
-<!-- LICENSE -->
+## Acknowledgments
 
-<!-- ## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-<!-- CONTACT -->
-
-## Contact
-
-Zydhan Linnar Putra - zyd@its.ac.id
-
-Project Link: [https://github.com/zydhanlinnar11/base-go](https://github.com/zydhanlinnar11/base-go)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- ACKNOWLEDGMENTS -->
-
-<!-- ## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-- [Choose an Open Source License](https://choosealicense.com)
-- [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-- [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-- [Malven's Grid Cheatsheet](https://grid.malven.co/)
-- [Img Shields](https://shields.io)
-- [GitHub Pages](https://pages.github.com)
-- [Font Awesome](https://fontawesome.com)
-- [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
-[Go]: https://img.shields.io/badge/Go-007d9c?style=for-the-badge&logo=go&logoColor=FFFFFF
-[Go-url]: https://go.dev/
+- [Laravel](https://laravel.com)
+- [Base Laravel DPTSI](https://bitbucket.org/dptsi/base-laravel)
+- many others...
