@@ -1,16 +1,25 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"sort"
+	"strings"
 
+	"github.com/dptsi/its-go/app"
+	"github.com/dptsi/its-go/providers"
+	"github.com/dptsi/its-go/web"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
-
-	// Services
-	"its.ac.id/base-go/bootstrap/config"
-	"its.ac.id/base-go/bootstrap/event"
-	"its.ac.id/base-go/bootstrap/web"
-	"its.ac.id/base-go/modules"
+	swaggerFiles "github.com/swaggo/files" // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"its.ac.id/base-go/config"
+	"its.ac.id/base-go/docs"
+	appProviders "its.ac.id/base-go/providers"
 )
 
 // @contact.name   Direktorat Pengembangan Teknologi dan Sistem Informasi (DPTSI) - ITS
@@ -33,31 +42,75 @@ func main() {
 	}
 	log.Println("Environment variables successfully loaded!")
 
-	log.Println("Loading application configurations...")
-	cfg, err := config.SetupAppConfig()
-	if err != nil {
-		log.Panic(err)
+	log.Println("Creating application instance...")
+	ctx := context.Background()
+	application := app.NewApplication(ctx, do.DefaultInjector, config.Config())
+	log.Println("Application instance successfully created!")
+
+	log.Println("Loading framework providers...")
+	if err := providers.LoadProviders(application); err != nil {
+		panic(err)
 	}
-	log.Println("Application configurations successfully loaded!")
+	log.Println("Framework providers loaded!")
 
-	log.Println("Setting up web server...")
-	server, err := web.SetupServer(cfg)
-	if err != nil {
-		log.Panic(err)
+	services := application.Services()
+
+	log.Println("Loading application providers...")
+	appProviders.LoadAppProviders(application)
+	log.Println("Application providers loaded!")
+
+	engine := services.WebEngine
+	engine.GET("/csrf-cookie", CSRFCookieRoute)
+
+	// programmatically set swagger info
+	if os.Getenv("APP_ENV") == "local" {
+		log.Println("Local environment detected, setting up swagger...")
+		appUrlEnv := os.Getenv("APP_URL")
+		appURL, err := url.Parse(appUrlEnv)
+		if err != nil {
+			appURL, _ = url.Parse("http://localhost:8080")
+		}
+		docs.SwaggerInfo.Title = os.Getenv("APP_NAME")
+		// docs.SwaggerInfo.Version = r.cfg.App().Version
+		docs.SwaggerInfo.Host = appURL.Host
+		docs.SwaggerInfo.BasePath = ""
+		docs.SwaggerInfo.Schemes = []string{"http", "https"}
+		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		log.Println("Swagger successfully set up!")
 	}
-	log.Println("Web server successfully set up!")
 
-	log.Println("Setting up event hook...")
-	eventHook := event.SetupEventHook()
-	log.Println("Event hook successfully set up!")
+	if os.Getenv("APP_DEBUG") == "true" {
+		serviceList := application.ListProvidedServices()
+		sort.Strings(serviceList)
+		log.Printf(
+			"registered %d dependencies: \n%s",
+			len(serviceList),
+			strings.Join((func() []string {
+				arr := make([]string, len(serviceList))
+				for i, s := range serviceList {
+					arr[i] = fmt.Sprintf("- %s", s)
+				}
 
-	log.Println("Registering modules...")
-	modules.RegisterModules(cfg, server.Engine(), eventHook)
-	log.Println("All modules successfully registered!")
+				return arr
+			})(), "\n"),
+		)
+	}
 
-	i := do.DefaultInjector
-	providedServices := i.ListProvidedServices()
-	log.Printf("registered %d dependencies: %v", len(providedServices), providedServices)
+	webConfig := config.Config()["web"].(web.Config)
+	engine.Run(fmt.Sprintf("0.0.0.0:%s", webConfig.Port))
+}
 
-	server.Start()
+// CSRF cookie godoc
+// @Summary		Rute dummy untuk set CSRF-TOKEN cookie
+// @Router		/csrf-cookie [get]
+// @Tags		CSRF Protection
+// @Produce		json
+// @Success		200 {object} responses.GeneralResponse{code=int,message=string} "Cookie berhasil diset"
+// @Header      default {string} Set-Cookie "CSRF-TOKEN=00000000-0000-0000-0000-000000000000; Path=/"
+func CSRFCookieRoute(ctx *web.Context) {
+	ctx.JSON(http.StatusOK, web.H{
+		"code":    0,
+		"message": "success",
+		"data":    nil,
+	})
 }

@@ -1,11 +1,4 @@
 definitions:
-  controllers.switchActiveRoleRequest:
-    properties:
-      role:
-        type: string
-    required:
-    - role
-    type: object
   responses.GeneralResponse:
     properties:
       code:
@@ -18,8 +11,9 @@ definitions:
     type: object
   responses.Role:
     properties:
-      is_default:
-        type: boolean
+      id:
+        example: mahasiswa
+        type: string
       name:
         example: Mahasiswa
         type: string
@@ -30,25 +24,25 @@ definitions:
     type: object
   responses.User:
     properties:
-      active_role:
-        example: Mahasiswa
-        type: string
       email:
-        example: user@contoso.com
-        type: string
-      id:
-        example: 00000000-0000-0000-0000-000000000000
+        example: 5025201000@student.its.ac.id
         type: string
       name:
-        example: John Doe
+        example: Mahasiswa ITS
+        type: string
+      picture:
+        example: https://my.its.ac.id/picture/00000000-0000-0000-0000-000000000000
         type: string
       preferred_username:
-        example: user@contoso.com
+        example: 5025201000@student.its.ac.id
         type: string
       roles:
         items:
           $ref: '#/definitions/responses.Role'
         type: array
+      sub:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
     type: object
 externalDocs:
   description: Dokumentasi Base Project
@@ -129,52 +123,6 @@ paths:
       security:
       - Session: []
       summary: Rute untuk mendapatkan data user yang sedang login
-      tags:
-      - Authentication & Authorization
-  /auth/user/switch-active-role:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ID role yang akan dijadikan active role
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.switchActiveRoleRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Active role berhasil diubah
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                data:
-                  type: string
-                message:
-                  type: string
-              type: object
-        "400":
-          description: User tidak memiliki role tersebut
-          schema:
-            allOf:
-            - $ref: '#/definitions/responses.GeneralResponse'
-            - properties:
-                code:
-                  type: integer
-                data:
-                  type: string
-                message:
-                  type: string
-              type: object
-      security:
-      - Session: []
-      - CSRF Token: []
-      summary: Rute untuk mengubah active role user
       tags:
       - Authentication & Authorization
   /csrf-cookie:

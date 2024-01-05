@@ -151,89 +151,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/user/switch-active-role": {
-            "post": {
-                "security": [
-                    {
-                        "Session": []
-                    },
-                    {
-                        "CSRF Token": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication \u0026 Authorization"
-                ],
-                "summary": "Rute untuk mengubah active role user",
-                "parameters": [
-                    {
-                        "description": "ID role yang akan dijadikan active role",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.switchActiveRoleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Active role berhasil diubah",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "User tidak memiliki role tersebut",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.GeneralResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/csrf-cookie": {
             "get": {
                 "produces": [
@@ -270,17 +187,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controllers.switchActiveRoleRequest": {
-            "type": "object",
-            "required": [
-                "role"
-            ],
-            "properties": {
-                "role": {
-                    "type": "string"
-                }
-            }
-        },
         "responses.GeneralResponse": {
             "type": "object",
             "properties": {
@@ -299,8 +205,9 @@ const docTemplate = `{
         "responses.Role": {
             "type": "object",
             "properties": {
-                "is_default": {
-                    "type": "boolean"
+                "id": {
+                    "type": "string",
+                    "example": "mahasiswa"
                 },
                 "name": {
                     "type": "string",
@@ -317,31 +224,31 @@ const docTemplate = `{
         "responses.User": {
             "type": "object",
             "properties": {
-                "active_role": {
-                    "type": "string",
-                    "example": "Mahasiswa"
-                },
                 "email": {
                     "type": "string",
-                    "example": "user@contoso.com"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "00000000-0000-0000-0000-000000000000"
+                    "example": "5025201000@student.its.ac.id"
                 },
                 "name": {
                     "type": "string",
-                    "example": "John Doe"
+                    "example": "Mahasiswa ITS"
+                },
+                "picture": {
+                    "type": "string",
+                    "example": "https://my.its.ac.id/picture/00000000-0000-0000-0000-000000000000"
                 },
                 "preferred_username": {
                     "type": "string",
-                    "example": "user@contoso.com"
+                    "example": "5025201000@student.its.ac.id"
                 },
                 "roles": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/responses.Role"
                     }
+                },
+                "sub": {
+                    "type": "string",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 }
             }
         }
