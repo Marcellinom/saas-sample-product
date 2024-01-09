@@ -3,7 +3,7 @@ module its.ac.id/base-go
 go 1.21.4
 
 require (
-	github.com/dptsi/its-go v1.2.1
+	github.com/dptsi/its-go v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
 	github.com/stoewer/go-strcase v1.3.0
@@ -44,7 +44,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
-	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
