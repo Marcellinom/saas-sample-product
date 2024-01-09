@@ -38,6 +38,8 @@ github.com/dnaeon/go-vcr v1.1.0/go.mod h1:M7tiix8f0r6mKKJ3Yq/kqU1OYf3MnfmBWVbPx/
 github.com/dnaeon/go-vcr v1.2.0/go.mod h1:R4UdLID7HZT3taECzJs4YgbbH6PIGXB6W/sc5OLb6RQ=
 github.com/dptsi/its-go v1.1.1 h1:O0c5JZ/TGWnpY6K5+lHVKxMZKZguvjSnNoO+KpACTmM=
 github.com/dptsi/its-go v1.1.1/go.mod h1:dzTmaRcRtdSDX1KXQlUEtCCqzYPeZKyMY5iKwWM075E=
+github.com/dptsi/its-go v1.2.0 h1:mBPZZuQBNTrunEHIHxJ8jDuDC/0Z2TkBoiDjF3fTGbg=
+github.com/dptsi/its-go v1.2.0/go.mod h1:TC4mf+SQ8AivqGYi8xolYW5rsN9e3QoCE9QMMqtXwDg=
 github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
 github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
 github.com/gin-contrib/cors v1.5.0 h1:DgGKV7DDoOn36DFkNtbHrjoRiT5ExCe+PC9/xp7aKvk=

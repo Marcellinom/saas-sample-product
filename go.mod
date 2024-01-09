@@ -3,7 +3,7 @@ module its.ac.id/base-go
 go 1.21.4
 
 require (
-	github.com/dptsi/its-go v1.1.1
+	github.com/dptsi/its-go v1.2.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
 	github.com/stoewer/go-strcase v1.3.0
