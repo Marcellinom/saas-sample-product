@@ -1,8 +1,8 @@
 package providers
 
 import (
+	"bitbucket.org/dptsi/go-modules/auth"
 	"github.com/dptsi/its-go/contracts"
-	"its.ac.id/base-go/modules/auth"
 )
 
 func registerModules(service contracts.ModuleService) {

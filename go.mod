@@ -1,9 +1,10 @@
 module its.ac.id/base-go
 
-go 1.21.4
+go 1.21.5
 
 require (
-	github.com/dptsi/its-go v1.3.0
+	bitbucket.org/dptsi/go-modules/auth v0.0.0-00010101000000-000000000000
+	github.com/dptsi/its-go v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
 	github.com/stoewer/go-strcase v1.3.0
@@ -52,7 +53,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.7.0 // indirect
@@ -71,3 +71,5 @@ require (
 	gorm.io/driver/sqlserver v1.5.2 // indirect
 	gorm.io/gorm v1.25.5 // indirect
 )
+
+replace bitbucket.org/dptsi/go-modules/auth => ./modules/auth
