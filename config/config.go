@@ -6,6 +6,7 @@ func Config() map[string]interface{} {
 		"crypt":      cryptConfig(),
 		"csrf":       csrfConfig(),
 		"database":   databaseConfig(),
+		"logging":    loggingConfig(),
 		"middleware": middlewareConfig(),
 		"sessions":   sessionsConfig(),
 		"web":        webConfig(),
