@@ -36,8 +36,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dnaeon/go-vcr v1.1.0/go.mod h1:M7tiix8f0r6mKKJ3Yq/kqU1OYf3MnfmBWVbPx/yU9ko=
 github.com/dnaeon/go-vcr v1.2.0/go.mod h1:R4UdLID7HZT3taECzJs4YgbbH6PIGXB6W/sc5OLb6RQ=
-github.com/dptsi/its-go v1.3.2 h1:pRtEcXGkVKurP50aLmC8cMX3tfTuT4jAOSN5b4oSCj4=
-github.com/dptsi/its-go v1.3.2/go.mod h1:40g9lHRlGYL65jA4rFmb+LwR2Fv0bekk/mVXm+/FmBg=
+github.com/dptsi/its-go v1.4.0 h1:A+QFr1fBzp+llPjznLR39YvYVWeJNAg584igRJ83CNE=
+github.com/dptsi/its-go v1.4.0/go.mod h1:40g9lHRlGYL65jA4rFmb+LwR2Fv0bekk/mVXm+/FmBg=
 github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
 github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
 github.com/gin-contrib/cors v1.5.0 h1:DgGKV7DDoOn36DFkNtbHrjoRiT5ExCe+PC9/xp7aKvk=

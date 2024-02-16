@@ -4,7 +4,7 @@ go 1.21.5
 
 require (
 	bitbucket.org/dptsi/go-modules/auth v0.0.0-00010101000000-000000000000
-	github.com/dptsi/its-go v1.3.2
+	github.com/dptsi/its-go v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
 	github.com/stoewer/go-strcase v1.3.0
