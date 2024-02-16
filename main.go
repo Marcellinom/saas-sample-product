@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/dptsi/its-go/app"
 	"github.com/dptsi/its-go/providers"
@@ -34,35 +33,35 @@ import (
 // @externalDocs.description  Dokumentasi Base Project
 // @externalDocs.url          http://localhost:8080/doc/project
 func main() {
-	log.Println("Loading environment variables from .env")
+	//  log.Println("Loading environment variables from .env")
 	if err := godotenv.Load(); err != nil {
 		log.Panic("Error loading .env file")
 	}
-	log.Println("Environment variables successfully loaded!")
+	//  log.Println("Environment variables successfully loaded!")
 
-	log.Println("Creating application instance...")
+	//  log.Println("Creating application instance...")
 	ctx := context.Background()
 	application := app.NewApplication(ctx, do.DefaultInjector, config.Config())
-	log.Println("Application instance successfully created!")
+	//  log.Println("Application instance successfully created!")
 
-	log.Println("Loading framework providers...")
+	//  log.Println("Loading framework providers...")
 	if err := providers.LoadProviders(application); err != nil {
 		panic(err)
 	}
-	log.Println("Framework providers loaded!")
+	//  log.Println("Framework providers loaded!")
 
 	services := application.Services()
 
-	log.Println("Loading application providers...")
+	//  log.Println("Loading application providers...")
 	appProviders.LoadAppProviders(application)
-	log.Println("Application providers loaded!")
+	//  log.Println("Application providers loaded!")
 
 	engine := services.WebEngine
 	engine.GET("/csrf-cookie", CSRFCookieRoute)
 
 	// programmatically set swagger info
 	if os.Getenv("APP_ENV") == "local" {
-		log.Println("Local environment detected, setting up swagger...")
+		//  log.Println("Local environment detected, setting up swagger...")
 		appUrlEnv := os.Getenv("APP_URL")
 		appURL, err := url.Parse(appUrlEnv)
 		if err != nil {
@@ -74,24 +73,24 @@ func main() {
 		docs.SwaggerInfo.BasePath = ""
 		docs.SwaggerInfo.Schemes = []string{"http", "https"}
 		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-		log.Println("Swagger successfully set up!")
+		//  log.Println("Swagger successfully set up!")
 	}
 
 	if os.Getenv("APP_DEBUG") == "true" {
 		serviceList := application.ListProvidedServices()
 		sort.Strings(serviceList)
-		log.Printf(
-			"registered %d dependencies: \n%s",
-			len(serviceList),
-			strings.Join((func() []string {
-				arr := make([]string, len(serviceList))
-				for i, s := range serviceList {
-					arr[i] = fmt.Sprintf("- %s", s)
-				}
+		// log.Printf(
+		// 	"registered %d dependencies: \n%s",
+		// 	len(serviceList),
+		// 	strings.Join((func() []string {
+		// 		arr := make([]string, len(serviceList))
+		// 		for i, s := range serviceList {
+		// 			arr[i] = fmt.Sprintf("- %s", s)
+		// 		}
 
-				return arr
-			})(), "\n"),
-		)
+		// 		return arr
+		// 	})(), "\n"),
+		// )
 	}
 
 	webConfig := config.Config()["web"].(web.Config)
