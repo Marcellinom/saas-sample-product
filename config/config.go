@@ -9,6 +9,7 @@ func Config() map[string]interface{} {
 		"logging":    loggingConfig(),
 		"middleware": middlewareConfig(),
 		"sessions":   sessionsConfig(),
+		"sso":        ssoConfig(),
 		"web":        webConfig(),
 	}
 }
