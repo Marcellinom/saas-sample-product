@@ -3,7 +3,7 @@ module its.ac.id/base-go
 go 1.21.5
 
 require (
-	bitbucket.org/dptsi/go-modules/auth v0.0.0-00010101000000-000000000000
+	// bitbucket.org/dptsi/go-modules/auth v0.0.0-00010101000000-000000000000
 	github.com/dptsi/its-go v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/do v1.6.0
@@ -90,4 +90,4 @@ require (
 	gorm.io/gorm v1.25.5 // indirect
 )
 
-replace bitbucket.org/dptsi/go-modules/auth => ./modules/auth
+// replace bitbucket.org/dptsi/go-modules/auth => ./modules/auth

@@ -21,5 +21,6 @@ func sessionsConfig() sessions.Config {
 			Secure:         false,
 			Lifetime:       60,
 		},
+		AutoMigrate: true,
 	}
 }

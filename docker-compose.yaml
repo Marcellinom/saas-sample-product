@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  sample-saas-product:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sample-saas-product
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/usr/src/app

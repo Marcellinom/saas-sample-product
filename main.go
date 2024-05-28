@@ -10,8 +10,10 @@ import (
 	"sort"
 
 	"github.com/dptsi/its-go/app"
+	"github.com/dptsi/its-go/database"
 	"github.com/dptsi/its-go/providers"
 	"github.com/dptsi/its-go/web"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files" // swagger embed files
@@ -79,22 +81,40 @@ func main() {
 	if os.Getenv("APP_DEBUG") == "true" {
 		serviceList := application.ListProvidedServices()
 		sort.Strings(serviceList)
-		// log.Printf(
-		// 	"registered %d dependencies: \n%s",
-		// 	len(serviceList),
-		// 	strings.Join((func() []string {
-		// 		arr := make([]string, len(serviceList))
-		// 		for i, s := range serviceList {
-		// 			arr[i] = fmt.Sprintf("- %s", s)
-		// 		}
-
-		// 		return arr
-		// 	})(), "\n"),
-		// )
+	
 	}
+	db := services.Database.GetDefault()
+	controller := Controller{db: db}
+	engine.GET("/", controller.Test)
+	engine.GET("/status", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
 
 	webConfig := config.Config()["web"].(web.Config)
-	engine.Run(fmt.Sprintf("0.0.0.0:%s", webConfig.Port))
+	engine.Run(fmt.Sprintf(":%s", webConfig.Port))
+}
+
+type Controller struct {
+	db *database.Database
+}
+
+func (c *Controller) Test(ctx *gin.Context) {
+	var users []struct {
+		Id int64 `json:"id"`
+		Name string `json:"name"`
+	} 
+	err := c.db.Table("users").Find(&users).Error
+	if err != nil {
+		ctx.Error(err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    1,
+		"message": "success",
+		"data":    users,
+	})
 }
 
 // CSRF cookie godoc
